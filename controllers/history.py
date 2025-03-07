@@ -1,6 +1,6 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QGridLayout, QListWidget, QPushButton, QWidget, QLabel
-import browser
+import views
 import views.main_window
 import os
 
@@ -10,11 +10,11 @@ class HistoryWindow(QWidget):
         super().__init__()
 
         titleLbl = QLabel("History")
-        titleLbl.setFont(browser.textFont)
+        titleLbl.setFont(views.textFont)
 
         clearBtn = QPushButton("Clear")
         clearBtn.setObjectName("ClearButnHistory")
-        clearBtn.setFont(browser.textFont)
+        clearBtn.setFont(views.textFont)
         clearBtn.clicked.connect(self.clearHistory)
 
         self.historyList = QListWidget()
@@ -40,7 +40,7 @@ class HistoryWindow(QWidget):
         self.setLayout(layout)
 
     def fillHistoryList(self):
-        data = browser.cursor.execute("SELECT * FROM history")
+        data = views.cursor.execute("SELECT * FROM history")
         siteInfoList = data.fetchall()
         for i in range(len(siteInfoList) - 1, -1, -1):
             siteInfo = siteInfoList[i][1] + " - " + siteInfoList[i][3]
@@ -49,7 +49,7 @@ class HistoryWindow(QWidget):
     def goClickedLink(self, item):
         siteName = item.text()
         visitDate = siteName[len(siteName) - 19 :]
-        siteInfoFromDB = browser.cursor.execute(
+        siteInfoFromDB = views.cursor.execute(
             "SELECT * FROM history WHERE date = ?", [visitDate]
         )
         try:
@@ -65,5 +65,5 @@ class HistoryWindow(QWidget):
 
     def clearHistory(self):
         self.historyList.clear()
-        browser.cursor.execute("DELETE FROM history")
-        browser.connection.commit()
+        views.cursor.execute("DELETE FROM history")
+        views.connection.commit()

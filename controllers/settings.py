@@ -3,14 +3,14 @@ import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 
-import browser
+import views
 
 
 class UserSettings(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.settings_data = browser.settings_data
+        self.settings_data = views.settings_data
         self.default_search_engine = self.settings_data["defaultSearchEngine"]
         self.mainWidget = QWidget(self)
 
