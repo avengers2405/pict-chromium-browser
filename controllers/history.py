@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QGridLayout, QListWidget, QPushButton, QWidget, QLabel
 import browser
-import browser.main_window
+import views.main_window
 import os
 
 
@@ -24,7 +24,7 @@ class HistoryWindow(QWidget):
 
         self.historyList.itemClicked.connect(self.goClickedLink)
 
-        with open(os.path.join("styles", "history_style.css")) as f:
+        with open(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "history_style.css")) as f:
             style = f.read()
             clearBtn.setStyleSheet(style)
             self.historyList.setStyleSheet(style)
@@ -54,7 +54,7 @@ class HistoryWindow(QWidget):
         )
         try:
             url = siteInfoFromDB.fetchall()[0][2]
-            w = browser.main_window.mainWindow()
+            w = views.main_window.mainWindow()
             w.openSiteHistoryClicked(
                 QtCore.QUrl(url), str(siteName)
             )  # open selected url

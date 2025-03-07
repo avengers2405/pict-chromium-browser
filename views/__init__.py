@@ -47,14 +47,14 @@ def main():
     QApplication.setApplicationName("Simple Web Browser")
 
     # Set the window icon
-    QApplication.setWindowIcon(QIcon(os.path.join("resources", "logos", "browser.png")))
+    QApplication.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "logos", "browser.png")))
 
     # App styles
-    if os.path.isfile(os.path.join("styles", "styles.css")):
-        with open(os.path.join("styles", "styles.css")) as f:
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "styles.css")):
+        with open(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "styles.css")) as f:
             gui_app.setStyleSheet(f.read())
 
-    QFontDatabase.addApplicationFont(os.path.join("fonts", "fa-solid-900.ttf"))
+    QFontDatabase.addApplicationFont(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "fonts", "fa-solid-900.ttf"))
 
     window = views.main_window.mainWindow()
 

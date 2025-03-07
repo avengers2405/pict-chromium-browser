@@ -20,7 +20,7 @@ class AddressBar(QLineEdit):
 
         # Set focus to the address bar
         self.setFocus()
-        with open(os.path.join("styles", "addr_bar.css")) as f:
+        with open(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "addr_bar.css")) as f:
             self.setStyleSheet(f.read())
 
 
@@ -31,7 +31,7 @@ class SSLIcon(QLabel):
 
     def InitSSLIcon(self):
         self.setObjectName("SSLIcon")
-        icon = QPixmap(os.path.join("resources", "lock-icon.png"))
+        icon = QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "lock-icon.png"))
         self.setPixmap(icon)
 
 
@@ -52,7 +52,7 @@ class Tabs(QTabWidget):
 
         # Add some styles to the tabs
         with open(
-            os.path.join("styles", "tab_style.css")
+            os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "tab_style.css")
         ) as f:  # Open tab_styles.css file
             self.setStyleSheet(f.read())
 

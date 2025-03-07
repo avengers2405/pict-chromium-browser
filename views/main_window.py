@@ -16,13 +16,13 @@ from PyQt5.QtCore import QSize, QUrl, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import QtCore
 from PyQt5 import QtGui
-import browser.widgets
-import browser.printer
-import browser.errors
-import browser.about
-import browser.history
-import browser.settings
-import browser
+import controllers.widgets
+import controllers.printer
+import controllers.errors
+import controllers.about
+import controllers.history
+import controllers.settings
+import views
 import sys
 import os
 import re
@@ -46,10 +46,10 @@ class mainWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        self.tabs = browser.widgets.Tabs()  # create tabs
+        self.tabs = controllers.widgets.Tabs()  # create tabs
 
         # create history table
-        browser.cursor.execute(
+        views.cursor.execute(
             """CREATE TABLE IF NOT EXISTS "history" (
                 "id"	INTEGER,
                 "title"	TEXT,
@@ -72,7 +72,7 @@ class mainWindow(QMainWindow):
         AddNewTabKeyShortcut = QShortcut("Ctrl+T", self)
         AddNewTabKeyShortcut.activated.connect(
             lambda: self.add_new_tab(
-                QtCore.QUrl(browser.settings_data["newTabPage"], "New tab")
+                QtCore.QUrl(views.settings_data["newTabPage"], "New tab")
             )
         )
 
@@ -95,7 +95,7 @@ class mainWindow(QMainWindow):
         back_btn = QPushButton(self)
         back_btn.setObjectName("back_btn")
         back_btn.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "left-arrow.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "left-arrow.png"))
         )
         back_btn.setToolTip("Back to previous page")
         back_btn.setShortcut("Alt+Left")
@@ -106,7 +106,7 @@ class mainWindow(QMainWindow):
         forward_butn = QPushButton(self)
         forward_butn.setObjectName("forward_butn")
         forward_butn.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "right-arrow.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "right-arrow.png"))
         )
         forward_butn.setToolTip("Go forward")
         forward_butn.setShortcut("Alt+Right")
@@ -120,7 +120,7 @@ class mainWindow(QMainWindow):
         self.reload_butn.setShortcut("Ctrl+R")
         self.reload_butn.resize(QSize(50, 50))
         self.reload_butn.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "refresh.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "refresh.png"))
         )
         self.reload_butn.clicked.connect(self.reload_tab)
 
@@ -128,7 +128,7 @@ class mainWindow(QMainWindow):
         self.stop_btn.setObjectName("stop_butn")
         self.stop_btn.setToolTip("Stop loading current page")
         self.stop_btn.setShortcut("Escape")
-        self.stop_btn.setIcon(QIcon(os.path.join("resources", "icons", "cross.png")))
+        self.stop_btn.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "cross.png")))
         self.stop_btn.clicked.connect(self.stop_loading_tab)
 
         # Added stop button
@@ -142,13 +142,13 @@ class mainWindow(QMainWindow):
         self.home_button.setObjectName("home_button")
         self.home_button.setToolTip("Back to home")
         self.home_button.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "home.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "home.png"))
         )
         self.home_button.clicked.connect(self.goToHome)
         self.navbar.addWidget(self.home_button)
 
         # Add Address bar
-        self.url_bar = browser.widgets.AddressBar()
+        self.url_bar = controllers.widgets.AddressBar()
         self.url_bar.initAddressBar()
         self.url_bar.setFrame(False)
         self.url_bar.returnPressed.connect(self.navigate_to_url)
@@ -166,7 +166,7 @@ class mainWindow(QMainWindow):
         self.navbar.addSeparator()
 
         # Shows ssl security icon
-        self.httpsicon = browser.widgets.SSLIcon()
+        self.httpsicon = controllers.widgets.SSLIcon()
 
         # Add http icon to the navbar bar
         self.navbar.addWidget(self.httpsicon)
@@ -189,7 +189,7 @@ class mainWindow(QMainWindow):
 
         # Give the three dot image to the Qpushbutton
         ContextMenuButton.setIcon(
-            QIcon(os.path.join("resources", "icons", "more.png"))
+            QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "more.png"))
         )  # Add icon
         ContextMenuButton.setObjectName("ContextMenuTriggerButn")
         ContextMenuButton.setToolTip("More")
@@ -202,11 +202,11 @@ class mainWindow(QMainWindow):
         # Add new tab
         newTabAction = QAction("New tab", self)
         newTabAction.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "newtab.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "newtab.png"))
         )
         newTabAction.triggered.connect(
             lambda: self.add_new_tab(
-                QUrl(browser.settings_data["newTabPage"]), "Homepage"
+                QUrl(views.settings_data["newTabPage"]), "Homepage"
             )
         )
         newTabAction.setToolTip("Add a new tab")
@@ -215,7 +215,7 @@ class mainWindow(QMainWindow):
         # New window action
         newWindowAction = QAction("New window", self)
         newWindowAction.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "app_window_ios.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "app_window_ios.png"))
         )
         newWindowAction.triggered.connect(self.CreateNewWindow)
         context_menu.addAction(newWindowAction)
@@ -223,7 +223,7 @@ class mainWindow(QMainWindow):
         # Close tab action
         CloseTabAction = QAction("Close tab", self)
         CloseTabAction.setIcon(
-            QIcon(os.path.join("resources", "icons", "closetab.png"))
+            QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "closetab.png"))
         )
         CloseTabAction.triggered.connect(
             lambda: self.close_current_tab(self.tabs.currentIndex())
@@ -239,7 +239,7 @@ class mainWindow(QMainWindow):
 
         # Feature to copy site url
         CopySiteAddress = QAction(
-            QtGui.QIcon(os.path.join("resources", "icons", "url.png")),
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "url.png")),
             "Copy site url",
             self,
         )
@@ -249,7 +249,7 @@ class mainWindow(QMainWindow):
 
         # Fetaure to go to copied site url
         PasteAndGo = QAction(
-            QtGui.QIcon(os.path.join("resources", "icons", "paste.png")),
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "paste.png")),
             "Paste and go",
             self,
         )
@@ -262,7 +262,7 @@ class mainWindow(QMainWindow):
 
         # View history
         ViewHistory = QAction("History", self)
-        ViewHistory.setIcon(QIcon(os.path.join("resources", "icons", "history.png")))
+        ViewHistory.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "history.png")))
         ViewHistory.triggered.connect(self.openHistory)
         ViewHistory.setShortcut("Ctrl+h")
         context_menu.addAction(ViewHistory)
@@ -270,7 +270,7 @@ class mainWindow(QMainWindow):
         # Open page
         OpenPgAction = QAction("Open", self)
         OpenPgAction.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "openclickhtml.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "openclickhtml.png"))
         )
         OpenPgAction.setToolTip("Open a file in this browser")
         OpenPgAction.setShortcut("Ctrl+O")
@@ -280,7 +280,7 @@ class mainWindow(QMainWindow):
         # Save page as
         SavePageAs = QAction("Save page as", self)
         SavePageAs.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "save-disk.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "save-disk.png"))
         )
         SavePageAs.setToolTip("Save current page to this device")
         SavePageAs.setShortcut("Ctrl+S")
@@ -290,7 +290,7 @@ class mainWindow(QMainWindow):
         # Print this page action
         PrintThisPageAction = QAction("Print this page", self)
         PrintThisPageAction.setIcon(
-            QtGui.QIcon(os.path.join("resources", "icons", "printer.png"))
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "printer.png"))
         )
         PrintThisPageAction.triggered.connect(self.print_this_page)
         PrintThisPageAction.setShortcut("Ctrl+P")
@@ -299,7 +299,7 @@ class mainWindow(QMainWindow):
 
         # Print with preview
         PrintPageWithPreview = QAction(
-            QtGui.QIcon(os.path.join("resources", "icons", "printerprev.png")),
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "printerprev.png")),
             "Print page with preview",
             self,
         )
@@ -309,7 +309,7 @@ class mainWindow(QMainWindow):
 
         # Save page as PDF
         SavePageAsPDF = QAction(
-            QtGui.QIcon(os.path.join("resources", "icons", "adobepdf.png")),
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "adobepdf.png")),
             "Save as PDF",
             self,
         )
@@ -320,7 +320,7 @@ class mainWindow(QMainWindow):
 
         # Settings widget:
         userSettingsAction = QAction(
-            QtGui.QIcon(os.path.join("resources", "icons", "settings.png")),
+            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "settings.png")),
             "Settings",
             self,
         )
@@ -330,18 +330,18 @@ class mainWindow(QMainWindow):
         # The help submenu
         HelpMenu = QMenu("Help", self)
         HelpMenu.setObjectName("HelpMenu")
-        HelpMenu.setIcon(QIcon(os.path.join("resources", "icons", "question.png")))
+        HelpMenu.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "question.png")))
 
         # About action
         AboutAction = QAction("About this browser", self)
-        AboutAction.setIcon(QIcon(os.path.join("resources", "icons", "info.png")))
+        AboutAction.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "info.png")))
         AboutAction.triggered.connect(self.about)
         HelpMenu.addAction(AboutAction)
 
         # Visit action
-        VisitGithubAction = QAction("Visit Github", self)
-        VisitGithubAction.triggered.connect(self.visitGithub)
-        HelpMenu.addAction(VisitGithubAction)
+        # VisitGithubAction = QAction("Visit Github", self)
+        # VisitGithubAction.triggered.connect(self.visitGithub)
+        # HelpMenu.addAction(VisitGithubAction)
 
         context_menu.addMenu(HelpMenu)
 
@@ -362,7 +362,7 @@ class mainWindow(QMainWindow):
         self.navbar.addWidget(ContextMenuButton)
 
         # Stuffs to see at startup
-        self.add_new_tab(QUrl(browser.settings_data["startupPage"]), "Homepage")
+        self.add_new_tab(QUrl(views.settings_data["startupPage"]), "Homepage")
 
         # Set the address focus
         self.url_bar.setFocus()
@@ -395,7 +395,7 @@ class mainWindow(QMainWindow):
     # funcion to navigate to home when home icon is pressed
 
     def goToHome(self):
-        self.tabs.currentWidget().setUrl(QUrl(browser.settings_data["homeButtonPage"]))
+        self.tabs.currentWidget().setUrl(QUrl(views.settings_data["homeButtonPage"]))
 
     # Define open a new window
 
@@ -411,13 +411,6 @@ class mainWindow(QMainWindow):
 
     def PasteUrlAndGo(self):
         self.add_new_tab(QUrl(pc.paste()), self.tabs.currentWidget().title())
-
-    # Remove this if you don't need it
-
-    def visitGithub(self):
-        self.add_new_tab(
-            QUrl("https://github.com/saminsakur/PyQt5BrowserBuild"), "Github"
-        )
 
     # navigate backward tab
 
@@ -462,7 +455,7 @@ class mainWindow(QMainWindow):
                     self.tabs.currentWidget().setHtml(opened_file)
 
             except:
-                dlg = browser.errors.fileErrorDialog()
+                dlg = controllers.errors.fileErrorDialog()
                 dlg.exec_()
 
         self.url_bar.setText(filename)
@@ -493,7 +486,7 @@ class mainWindow(QMainWindow):
     # Print handler
     def print_this_page(self):
         try:
-            handler_print = browser.printer.PrintHandler()
+            handler_print = controllers.printer.PrintHandler()
             handler_print.setPage(self.tabs.currentWidget().page())
             handler_print.print()
 
@@ -502,7 +495,7 @@ class mainWindow(QMainWindow):
 
     # Print page with preview
     def PrintWithPreview(self):
-        handler = browser.printer.PrintHandler()
+        handler = controllers.printer.PrintHandler()
         handler.setPage(self.tabs.currentWidget().page())
         handler.printPreview()
 
@@ -517,7 +510,7 @@ class mainWindow(QMainWindow):
     # doubleclick on empty space for new tab
     def tab_open_doubleclick(self, i):
         if i == -1:  # No tab under the click
-            self.add_new_tab(QUrl(browser.settings_data["newTabPage"]), label="New tab")
+            self.add_new_tab(QUrl(views.settings_data["newTabPage"]), label="New tab")
 
     # to update the tab
     def tab_changed(self, i):
@@ -533,8 +526,8 @@ class mainWindow(QMainWindow):
         self.tabs.removeTab(i)
 
     # Update window title
-    def update_title(self, browser):
-        if browser != self.tabs.currentWidget():
+    def update_title(self, views):
+        if views != self.tabs.currentWidget():
             return
 
         title = self.tabs.currentWidget().page().title()
@@ -548,12 +541,12 @@ class mainWindow(QMainWindow):
     # function to add new tab
     def add_new_tab(self, qurl=None, label="Blank"):
         if qurl is None:
-            qurl = QUrl(browser.settings_data["newTabPage"])
+            qurl = QUrl(views.settings_data["newTabPage"])
 
         _browser = QWebEngineView()  # Define the main webview to browser the internet
 
         # Set page
-        _browser.setPage(browser.widgets.customWebEnginePage(_browser))
+        _browser.setPage(controllers.widgets.customWebEnginePage(_browser))
 
         # Full screen enable
         _browser.settings().setAttribute(
@@ -588,11 +581,11 @@ class mainWindow(QMainWindow):
         _browser.page().loadFinished.connect(self.updateHistory)
 
     def showErrorDlg(self):
-        dlg = browser.errors.errorMsg()
+        dlg = controllers.errors.errorMsg()
         dlg.exec_()
 
     def about(self):
-        self.AboutDialogue = browser.about.AboutDialog()
+        self.AboutDialogue = controllers.about.AboutDialog()
         self.AboutDialogue.show()
 
     # Update address bar to show current pages's url
@@ -601,9 +594,9 @@ class mainWindow(QMainWindow):
             # if signal is not from the current tab, then ignore
             return
 
-        if q.toString() == browser.settings_data["newTabPage"]:
+        if q.toString() == views.settings_data["newTabPage"]:
             self.httpsicon.setPixmap(
-                QPixmap(os.path.join("resources", "icons", "info_24.png"))
+                QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "info_24.png"))
             )
             self.httpsicon.setToolTip("This is browser's new tab page")
             self.url_bar.clear()
@@ -612,7 +605,7 @@ class mainWindow(QMainWindow):
             if q.scheme() == "https":
                 # secure padlock icon
                 self.httpsicon.setPixmap(
-                    QPixmap(os.path.join("resources", "icons", "security.png"))
+                    QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "security.png"))
                 )
                 self.httpsicon.setToolTip(
                     "Connection to this is is secure\n\nThis site have a valid certificate"
@@ -620,20 +613,20 @@ class mainWindow(QMainWindow):
 
             elif q.scheme() == "file":
                 self.httpsicon.setPixmap(
-                    QPixmap(os.path.join("resources", "icons", "info_24.png"))
+                    QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "info_24.png"))
                 )
                 self.httpsicon.setToolTip("You are viewing a local or shared file")
 
             elif q.scheme() == "data":
                 self.httpsicon.setPixmap(
-                    QPixmap(os.path.join("resources", "icons", "info_24.png"))
+                    QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "info_24.png"))
                 )
                 self.httpsicon.setToolTip("You are viewing a local or shared file")
 
             else:
                 # Set insecure padlock
                 self.httpsicon.setPixmap(
-                    QPixmap(os.path.join("resources", "icons", "warning.png"))
+                    QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "warning.png"))
                 )
                 self.httpsicon.setToolTip("Connection to this site may not be secured")
 
@@ -644,7 +637,7 @@ class mainWindow(QMainWindow):
 
     # function to search google from the search box
     def searchWeb(self, text):
-        Engine = browser.settings_data["defaultSearchEngine"]
+        Engine = views.settings_data["defaultSearchEngine"]
         if text:
             if Engine == "Google":
                 return "https://www.google.com/search?q=" + "+".join(text.split())
@@ -668,7 +661,7 @@ class mainWindow(QMainWindow):
         in_url = self.url_bar.text()
         url = ""
         """ if the text in the search box endswith one of the domain in the domains tuple, then "http://" will be added
-         if the text is pre "http://" or "https://" added, then not"""
+            if the text is pre "http://" or "https://" added, then not"""
         # [0-9A-Za-z]+\.+[A-Za-z0-9]{2}
         if len(str(in_url)) < 1:
             return
@@ -706,22 +699,22 @@ class mainWindow(QMainWindow):
         day = datetime.datetime.now().strftime("%x")
         date = hour + " - " + day
 
-        data = browser.cursor.execute("SELECT * FROM history")
+        data = views.cursor.execute("SELECT * FROM history")
         siteInfoList = data.fetchall()
 
         for i in range(len(siteInfoList)):
             if url == siteInfoList[i][2]:
-                browser.cursor.execute("DELETE FROM history WHERE url = ?", [url])
+                views.cursor.execute("DELETE FROM history WHERE url = ?", [url])
 
-        browser.cursor.execute(
+        views.cursor.execute(
             "INSERT INTO history (title,url,date) VALUES (:title,:url,:date)",
             {"title": title, "url": url, "date": date},
         )
 
-        browser.connection.commit()
+        views.connection.commit()
 
     def openHistory(self):
-        self.historyWindow = browser.history.HistoryWindow()
+        self.historyWindow = controllers.history.HistoryWindow()
         self.historyWindow.setWindowFlags(Qt.Popup)
         self.historyWindow.setGeometry(
             int(self.tabs.currentWidget().frameGeometry().width() / 2 + 400),
@@ -741,7 +734,6 @@ class mainWindow(QMainWindow):
         self.tabs.currentWidget().load(url)
 
     def openSettings(self):
-        self.userSettingswindow = browser.settings.UserSettings()
+        self.userSettingswindow = controllers.settings.UserSettings()
         self.userSettingswindow.setWindowFlag(Qt.MSWindowsFixedSizeDialogHint)
         self.userSettingswindow.show()
-

@@ -24,11 +24,11 @@ class AboutDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-        with open(os.path.join("styles", "about_style.css")) as f:
+        with open(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "about_style.css")) as f:
             self.button_box.button(QDialogButtonBox.Ok).setStyleSheet(f.read())
 
         logo = QLabel()
-        pixmap = QPixmap(os.path.join("resources", "logos", "browser.png"))
+        pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "logos", "browser.png"))
         pixmap = pixmap.scaled(80, 80)
         logo.setPixmap(pixmap)
         self.layout.addWidget(logo)
@@ -39,14 +39,14 @@ class AboutDialog(QDialog):
         self.layout.addWidget(title)
 
         lbl1 = QLabel(
-            '<center>Version 2.4<br>Copyright ©2021 Made by <a href="https://github.com/saminsakur">Samin Sakur</a>.</center>'
+            '<center>Version 2.4<br>Copyright ©2021 Made with <3 by Akshit.</center>'
         )
         lbl1.setFont(QFont("Times", 10))
         lbl1.setOpenExternalLinks(True)
         self.layout.addWidget(lbl1)
 
         github_pg = QLabel(
-            '<a href="https://github.com/saminsakur/PyQt5BrowserBuild">Learn More </a>'
+            '<a href="https://github.com/avengers2405/pict-chromium-browser/tree/embedded">Learn More </a>'
         )
 
         font = QFont("Font Awesome 5 Free Solid", 10)
