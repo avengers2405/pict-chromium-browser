@@ -1,3 +1,0 @@
-include_rules = [
-  "+ios/chrome/browser/ui/partial_translate/partial_translate_app_interface.h"
-]
