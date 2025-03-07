@@ -1,3 +1,0 @@
-include_rules = [
-    "+services/on_device_model/public/mojom/on_device_model.mojom-blink.h",
-]
