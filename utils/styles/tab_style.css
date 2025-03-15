@@ -1,10 +1,10 @@
 QTabBar{
-    background-color:#2E385C;
+    background-color:#c5d0f8;
 }
 
 QTabBar::tab {
-    background-color: none;
-    color: #fff;
+    background-color: rgb(231, 233, 255);
+    color: black;
     padding: 5px 0px;
     padding-left: 4px;
     border-top-left-radius: 6px;
@@ -12,27 +12,29 @@ QTabBar::tab {
     padding-right:80px;
     max-width:80px;
     text-align: left;
+    /* text-decoration: black; */
 }
 
-QTabBar::tab:!selected{
-    background-color: transparent;
-}
-
-QTabBar::close-button {                         /* style the tab close button */
-    image: url(./resources/icons/closetabbutton.png);
-    subcontrol-position: right;
-    border: 1px solid transparent;
+/* QTabBar::close-button {                         /* style the tab close button*/
+    /* image: url(../resources/icons/closetabbutton.png); */
+    /* subcontrol-position: right; */
+    /* border: 1px solid red;
     border-radius:3px;
-}
+} */
 
-QTabBar::close-button:hover{                    /* close button hover */
-    background-color: #3B2E53;
-}
+/*QTabBar::close-button:hover{                     /* close button hover */
+    /* background-color: #823aff; */
+/* } */
 
-QTabBar::tab:!selected:hover{
-    background-color:#222348;
+/*QTabBar::close-button:selected{                    /* close button hover */
+    /* background-color: #3B2E53; */
+/* } */
+
+QTabBar::tab:hover{
+    background-color:#ba92ff;
 }
 
 QTabBar::tab:selected{                          /* selected tabs */
-    background-color: #170733;
+    background-color: #823aff;
+    color: white
 }

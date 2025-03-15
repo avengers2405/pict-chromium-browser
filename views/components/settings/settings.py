@@ -4,13 +4,14 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 
 import views
+import models.settings
 
 
 class UserSettings(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.settings_data = views.settings_data
+        self.settings_data = models.settings.settings_data
         self.default_search_engine = self.settings_data["defaultSearchEngine"]
         self.mainWidget = QWidget(self)
 
@@ -147,7 +148,7 @@ class UserSettings(QtWidgets.QWidget):
         QtCore.QMetaObject.connectSlotsByName(self.mainWidget)
 
         with open(
-            os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "settings_style.css")
+            os.path.join(os.path.dirname(__file__), "..", "..", "..", "utils", "styles", "settings_style.css")
         ) as f:  # Read styles from settings_style.css
             self.setStyleSheet(f.read())
 
@@ -176,26 +177,29 @@ class UserSettings(QtWidgets.QWidget):
     # Write to json
 
     def saveChangesToJson(self):  # startup pg
-        if len(self.startup_page.text()) > 0:
-            self.settings_data["startupPage"] = self.startup_page.text()
-            with open("settings.json", "w") as f:
-                json.dump(self.settings_data, f, indent=2)
+        try:
+            if len(self.startup_page.text()) > 0:
+                self.settings_data["startupPage"] = self.startup_page.text()
+                with open("./models/settings.json", "w") as f:
+                    json.dump(self.settings_data, f, indent=2)
 
-        if len(self.home_button_page.text()) > 0:
-            self.settings_data["homeButtonPage"] = self.home_button_page.text()
-            with open("settings.json", "w") as f:
-                json.dump(self.settings_data, f, indent=2)
+            if len(self.home_button_page.text()) > 0:
+                self.settings_data["homeButtonPage"] = self.home_button_page.text()
+                with open("./models/settings.json", "w") as f:
+                    json.dump(self.settings_data, f, indent=2)
 
-        if len(self.new_tab_page.text()) > 0:
-            self.settings_data["newTabPage"] = self.new_tab_page.text()
-            with open("settings.json", "w") as f:
-                json.dump(self.settings_data, f, indent=2)
+            if len(self.new_tab_page.text()) > 0:
+                self.settings_data["newTabPage"] = self.new_tab_page.text()
+                with open("./models/settings.json", "w") as f:
+                    json.dump(self.settings_data, f, indent=2)
+        except Exception as e:
+            print('error ocurred: ', e)
 
     def addDropDownItemToJson(self):
         self.settings_data[
             "defaultSearchEngine"
         ] = self.searchEngineSelector.currentText()
-        with open("settings.json", "w") as f:
+        with open("./models/settings.json", "w") as f:
             json.dump(self.settings_data, f, indent=2)
 
     def closeWindow(self):

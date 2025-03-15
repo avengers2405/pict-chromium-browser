@@ -16,13 +16,17 @@ from PyQt5.QtCore import QSize, QUrl, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import QtCore
 from PyQt5 import QtGui
-import controllers.widgets
+import views.components.address_bar
+import views.components.ssl_icon
+import views.components.custom_web_engine
 import controllers.printer
 import controllers.errors
 import controllers.about
 import controllers.history
-import controllers.settings
+import views.components.settings.settings
+import controllers.tabs
 import views
+import models.settings
 import sys
 import os
 import re
@@ -43,10 +47,10 @@ file_pattern = re.compile(r"^file://")
 class mainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(mainWindow, self).__init__(*args, **kwargs)
-        self.init_ui()
+        # self.init_ui()
 
     def init_ui(self):
-        self.tabs = controllers.widgets.Tabs()  # create tabs
+        self.tabs = controllers.tabs.Tabs()  # create tabs
 
         # create history table
         views.cursor.execute(
@@ -59,20 +63,11 @@ class mainWindow(QMainWindow):
             )"""
         )
 
-        # Add new tab when tab tab is doubleclicked
-        self.tabs.tabBarDoubleClicked.connect(self.tab_open_doubleclick)
-
-        # To connect to a function when current tab has been changed
-        self.tabs.currentChanged.connect(self.tab_changed)
-
-        # Function to handle tab closing
-        self.tabs.tabCloseRequested.connect(self.close_current_tab)
-
-        # open new tab when Ctrl+T pressed
+        # open new tab when 
         AddNewTabKeyShortcut = QShortcut("Ctrl+T", self)
         AddNewTabKeyShortcut.activated.connect(
             lambda: self.add_new_tab(
-                QtCore.QUrl(views.settings_data["newTabPage"], "New tab")
+                QtCore.QUrl(models.settings.settings_data["newTabPage"], "New tab")
             )
         )
 
@@ -148,7 +143,7 @@ class mainWindow(QMainWindow):
         self.navbar.addWidget(self.home_button)
 
         # Add Address bar
-        self.url_bar = controllers.widgets.AddressBar()
+        self.url_bar = views.components.address_bar.AddressBar()
         self.url_bar.initAddressBar()
         self.url_bar.setFrame(False)
         self.url_bar.returnPressed.connect(self.navigate_to_url)
@@ -166,7 +161,7 @@ class mainWindow(QMainWindow):
         self.navbar.addSeparator()
 
         # Shows ssl security icon
-        self.httpsicon = controllers.widgets.SSLIcon()
+        self.httpsicon = views.components.ssl_icon.SSLIcon()
 
         # Add http icon to the navbar bar
         self.navbar.addWidget(self.httpsicon)
@@ -206,7 +201,7 @@ class mainWindow(QMainWindow):
         )
         newTabAction.triggered.connect(
             lambda: self.add_new_tab(
-                QUrl(views.settings_data["newTabPage"]), "Homepage"
+                QUrl(models.settings.settings_data["newTabPage"]), "Homepage"
             )
         )
         newTabAction.setToolTip("Add a new tab")
@@ -303,7 +298,7 @@ class mainWindow(QMainWindow):
             "Print page with preview",
             self,
         )
-        PrintPageWithPreview.triggered.connect(self.PrintWithPreview)
+        PrintPageWithPreview.triggered.connect(self.print_with_preview)
         PrintPageWithPreview.setShortcut("Ctrl+Shift+P")
         context_menu.addAction(PrintPageWithPreview)
 
@@ -362,7 +357,7 @@ class mainWindow(QMainWindow):
         self.navbar.addWidget(ContextMenuButton)
 
         # Stuffs to see at startup
-        self.add_new_tab(QUrl(views.settings_data["startupPage"]), "Homepage")
+        self.add_new_tab(QUrl(models.settings.settings_data["startupPage"]), "Homepage")
 
         # Set the address focus
         self.url_bar.setFocus()
@@ -395,7 +390,7 @@ class mainWindow(QMainWindow):
     # funcion to navigate to home when home icon is pressed
 
     def goToHome(self):
-        self.tabs.currentWidget().setUrl(QUrl(views.settings_data["homeButtonPage"]))
+        self.tabs.currentWidget().setUrl(QUrl(models.settings.settings_data["homeButtonPage"]))
 
     # Define open a new window
 
@@ -494,7 +489,7 @@ class mainWindow(QMainWindow):
             self.showErrorDlg()
 
     # Print page with preview
-    def PrintWithPreview(self):
+    def print_with_preview(self):
         handler = controllers.printer.PrintHandler()
         handler.setPage(self.tabs.currentWidget().page())
         handler.printPreview()
@@ -510,7 +505,7 @@ class mainWindow(QMainWindow):
     # doubleclick on empty space for new tab
     def tab_open_doubleclick(self, i):
         if i == -1:  # No tab under the click
-            self.add_new_tab(QUrl(views.settings_data["newTabPage"]), label="New tab")
+            self.add_new_tab(QUrl(models.settings.settings_data["newTabPage"]), label="New tab")
 
     # to update the tab
     def tab_changed(self, i):
@@ -533,20 +528,20 @@ class mainWindow(QMainWindow):
         title = self.tabs.currentWidget().page().title()
 
         if 0 > len(title):
-            self.setWindowTitle("{} - Simple Web Browser".format(title))
+            self.setWindowTitle("{} - MJ23 Browser".format(title))
 
         else:
-            self.setWindowTitle("Simple Web Browser")
+            self.setWindowTitle("MJ23 Browser")
 
     # function to add new tab
     def add_new_tab(self, qurl=None, label="Blank"):
         if qurl is None:
-            qurl = QUrl(views.settings_data["newTabPage"])
+            qurl = QUrl(models.settings.settings_data["newTabPage"])
 
         _browser = QWebEngineView()  # Define the main webview to browser the internet
 
         # Set page
-        _browser.setPage(controllers.widgets.customWebEnginePage(_browser))
+        _browser.setPage(views.components.custom_web_engine.customWebEnginePage(_browser))
 
         # Full screen enable
         _browser.settings().setAttribute(
@@ -594,7 +589,7 @@ class mainWindow(QMainWindow):
             # if signal is not from the current tab, then ignore
             return
 
-        if q.toString() == views.settings_data["newTabPage"]:
+        if q.toString() == models.settings.settings_data["newTabPage"]:
             self.httpsicon.setPixmap(
                 QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "info_24.png"))
             )
@@ -637,7 +632,7 @@ class mainWindow(QMainWindow):
 
     # function to search google from the search box
     def searchWeb(self, text):
-        Engine = views.settings_data["defaultSearchEngine"]
+        Engine = models.settings.settings_data["defaultSearchEngine"]
         if text:
             if Engine == "Google":
                 return "https://www.google.com/search?q=" + "+".join(text.split())
@@ -734,6 +729,6 @@ class mainWindow(QMainWindow):
         self.tabs.currentWidget().load(url)
 
     def openSettings(self):
-        self.userSettingswindow = controllers.settings.UserSettings()
+        self.userSettingswindow = views.components.settings.settings.UserSettings()
         self.userSettingswindow.setWindowFlag(Qt.MSWindowsFixedSizeDialogHint)
         self.userSettingswindow.show()

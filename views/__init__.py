@@ -17,6 +17,8 @@ cursor = connection.cursor()
 # Font
 textFont = QFont("Times", 14)
 
+window=None
+
 if os.path.isfile("settings.json"):  # If settings file exists, then open it
     with open("settings.json", "r") as f:
         settings_data = json.load(f)
@@ -56,6 +58,8 @@ def main():
 
     QFontDatabase.addApplicationFont(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "fonts", "fa-solid-900.ttf"))
 
+    global window
     window = views.main_window.mainWindow()
+    window.init_ui()
 
     sys.exit(gui_app.exec_())

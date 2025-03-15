@@ -16,4 +16,4 @@ class BrowserState(QObject):
     def update_url(self, url):
         self.current_url = url
         self.url_changed.emit(url)
-        
+    
