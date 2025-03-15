@@ -24,11 +24,11 @@ class AboutDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-        with open(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "about_style.css")) as f:
+        with open(os.path.join(os.path.dirname(__file__), "..", "..", "..", "utils", "styles", "about_style.css")) as f:
             self.button_box.button(QDialogButtonBox.Ok).setStyleSheet(f.read())
 
         logo = QLabel()
-        pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "logos", "browser.png"))
+        pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "..", "..", "..", "utils", "resources", "logos", "browser.png"))
         pixmap = pixmap.scaled(80, 80)
         logo.setPixmap(pixmap)
         self.layout.addWidget(logo)

@@ -21,8 +21,8 @@ import views.components.ssl_icon
 import views.components.custom_web_engine
 import controllers.printer
 import controllers.errors
-import controllers.about
-import controllers.history
+import views.components.settings.about
+import views.components.settings.history
 import views.components.settings.settings
 import controllers.tabs
 import views
@@ -67,12 +67,13 @@ class mainWindow(QMainWindow):
         AddNewTabKeyShortcut = QShortcut("Ctrl+T", self)
         AddNewTabKeyShortcut.activated.connect(
             lambda: self.add_new_tab(
-                QtCore.QUrl(models.settings.settings_data["newTabPage"], "New tab")
+                QUrl(models.settings.settings_data["newTabPage"]), label="New tab"
             )
         )
 
         # Close current tab on Ctrl+W
         CloseCurrentTabKeyShortcut = QShortcut("Ctrl+W", self)
+        print("Ctrl+W pressed, argument sent: ", lambda: self.close_current_tab(self.tabs.currentIndex()))
         CloseCurrentTabKeyShortcut.activated.connect(
             lambda: self.close_current_tab(self.tabs.currentIndex())
         )
@@ -315,7 +316,7 @@ class mainWindow(QMainWindow):
 
         # Settings widget:
         userSettingsAction = QAction(
-            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "settings.png")),
+            QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "settings.png")),
             "Settings",
             self,
         )
@@ -326,6 +327,7 @@ class mainWindow(QMainWindow):
         HelpMenu = QMenu("Help", self)
         HelpMenu.setObjectName("HelpMenu")
         HelpMenu.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "question.png")))
+        context_menu.addMenu(HelpMenu)
 
         # About action
         AboutAction = QAction("About this browser", self)
@@ -337,8 +339,6 @@ class mainWindow(QMainWindow):
         # VisitGithubAction = QAction("Visit Github", self)
         # VisitGithubAction.triggered.connect(self.visitGithub)
         # HelpMenu.addAction(VisitGithubAction)
-
-        context_menu.addMenu(HelpMenu)
 
         # Add a separator
         context_menu.addSeparator()
@@ -504,6 +504,7 @@ class mainWindow(QMainWindow):
 
     # doubleclick on empty space for new tab
     def tab_open_doubleclick(self, i):
+        print("Tab bar double clicked")
         if i == -1:  # No tab under the click
             self.add_new_tab(QUrl(models.settings.settings_data["newTabPage"]), label="New tab")
 
@@ -535,6 +536,7 @@ class mainWindow(QMainWindow):
 
     # function to add new tab
     def add_new_tab(self, qurl=None, label="Blank"):
+        print('Opening new tab finction called')
         if qurl is None:
             qurl = QUrl(models.settings.settings_data["newTabPage"])
 
@@ -580,7 +582,7 @@ class mainWindow(QMainWindow):
         dlg.exec_()
 
     def about(self):
-        self.AboutDialogue = controllers.about.AboutDialog()
+        self.AboutDialogue = views.components.settings.about.AboutDialog()
         self.AboutDialogue.show()
 
     # Update address bar to show current pages's url
@@ -709,7 +711,7 @@ class mainWindow(QMainWindow):
         views.connection.commit()
 
     def openHistory(self):
-        self.historyWindow = controllers.history.HistoryWindow()
+        self.historyWindow = views.components.settings.history.HistoryWindow()
         self.historyWindow.setWindowFlags(Qt.Popup)
         self.historyWindow.setGeometry(
             int(self.tabs.currentWidget().frameGeometry().width() / 2 + 400),
