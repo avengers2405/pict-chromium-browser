@@ -1,0 +1,7 @@
+Step 1:
+
+1) same settings will be applied to all clients, no client can be customized alone
+2) all masters will change the same setting on server, masters cannot change settings of different targets. 
+Hence, all masters will be treated as one and all clients as one. no individuality.
+
+Necessary settings will be stored on server and will be the independent source of truth

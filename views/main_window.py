@@ -2,6 +2,7 @@ from PyQt5.QtWebEngineWidgets import (
     QWebEngineDownloadItem,
     QWebEngineSettings,
     QWebEngineView,
+    QWebEngineProfile
 )
 from PyQt5.QtWidgets import (
     QMainWindow,
@@ -17,6 +18,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 import views.components.address_bar
+from views.components.network import RequestInterceptor
 import views.components.ssl_icon
 import views.components.custom_web_engine
 import controllers.printer
@@ -47,6 +49,10 @@ file_pattern = re.compile(r"^file://")
 class mainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(mainWindow, self).__init__(*args, **kwargs)
+
+        self.profile = QWebEngineProfile("SecureBrowserProfile")
+        self.interceptor = RequestInterceptor()
+        self.profile.setUrlRequestInterceptor(self.interceptor)
         # self.init_ui()
 
     def init_ui(self):
@@ -543,7 +549,7 @@ class mainWindow(QMainWindow):
         _browser = QWebEngineView()  # Define the main webview to browser the internet
 
         # Set page
-        _browser.setPage(views.components.custom_web_engine.customWebEnginePage(_browser))
+        _browser.setPage(views.components.custom_web_engine.customWebEnginePage(self.profile, _browser))
 
         # Full screen enable
         _browser.settings().setAttribute(
