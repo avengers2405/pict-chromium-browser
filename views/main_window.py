@@ -19,6 +19,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui
 import views.components.address_bar
 from views.components.network import RequestInterceptor
+from views.components.internal_routes import CustomUrlSchemeHandler
 import views.components.ssl_icon
 import views.components.custom_web_engine
 import controllers.printer
@@ -53,6 +54,11 @@ class mainWindow(QMainWindow):
         self.profile = QWebEngineProfile("SecureBrowserProfile")
         self.interceptor = RequestInterceptor()
         self.profile.setUrlRequestInterceptor(self.interceptor)
+        self.scheme_handler = CustomUrlSchemeHandler()
+        self.profile.installUrlSchemeHandler(b'pict', self.scheme_handler)
+        handler_installed = self.profile.urlSchemeHandler(b'pict')
+        print(f"Handler installed: {handler_installed is not None}")
+        print(f"Handler is same instance: {handler_installed is self.scheme_handler}")
         # self.init_ui()
 
     def init_ui(self):
@@ -376,6 +382,8 @@ class mainWindow(QMainWindow):
 
         # Set minimum size
         self.setMinimumWidth(400)
+
+        self.tabs.currentWidget().load(QUrl("pict://login"))
 
     """
     Instead of managing 2 slots associated with the progress and completion of loading,

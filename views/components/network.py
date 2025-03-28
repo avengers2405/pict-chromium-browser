@@ -4,6 +4,7 @@ import requests
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo
 from PyQt5.QtCore import QUrl
 from controllers.errors import errorMsg
+from . import internal_routes
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     def __init__(self):
@@ -18,10 +19,20 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         self.update_lists()
     
     def interceptRequest(self, info):
-        print('called')
+        # print('called')
         url = info.requestUrl().toString()
+        try:
+            if url.startswith("pict://"):
+                print('found internal bwrowser path, should not have reached here, idk what to do')
+                # return internal_routes.get_page(url) # doesnt return anything
+            else:
+                # print('not internal route: ', url)
+                pass
+        except Exception as e:
+            print('error in interceptRequest() occurred: ', e)
+
         domain = self.extract_domain(url)
-        print('domain recieved: ', domain)
+        # print('domain recieved: ', domain)
 
         # Determine request type
         resource_type = info.resourceType()

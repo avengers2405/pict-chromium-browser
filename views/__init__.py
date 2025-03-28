@@ -4,7 +4,7 @@ import json
 import sqlite3
 
 from PyQt5.QtGui import QFontDatabase, QIcon, QFont
-
+from PyQt5.QtWebEngineCore import QWebEngineUrlScheme
 from PyQt5.QtWidgets import QApplication
 import views.main_window
 
@@ -40,6 +40,15 @@ else:  # If settings not exists, then create a new file with default settings
 
 
 def main():
+    scheme = QWebEngineUrlScheme(b'pict')
+    scheme.setFlags(
+        QWebEngineUrlScheme.Flag.SecureScheme | 
+        QWebEngineUrlScheme.Flag.LocalScheme | 
+        QWebEngineUrlScheme.Flag.LocalAccessAllowed
+    )
+    QWebEngineUrlScheme.registerScheme(scheme)
+    print("shceme status: ", QWebEngineUrlScheme.schemeByName(b'pict'))
+
     gui_app = QApplication(sys.argv)
 
     # Disable shortcut in context menu
@@ -58,8 +67,11 @@ def main():
 
     QFontDatabase.addApplicationFont(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "fonts", "fa-solid-900.ttf"))
 
-    global window
-    window = views.main_window.mainWindow()
-    window.init_ui()
+    try:
+        global window
+        window = views.main_window.mainWindow()
+        window.init_ui()
+    except Exception as e:
+        print('excepion caught in main widnow: ', e)
 
     sys.exit(gui_app.exec_())

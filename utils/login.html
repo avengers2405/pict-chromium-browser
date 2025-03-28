@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .form-fields {
+            margin-top: 24px;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: opacity 0.3s, height 0.3s;
+        }
+
+        .form-fields.active {
+            opacity: 1;
+            height: auto;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3a7bc8;
+        }
+
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background-color: #e7f7ed;
+            color: #28a745;
+            display: block;
+        }
+
+        .status.error {
+            background-color: #fae3e5;
+            color: #dc3545;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Access Portal</h1>
+        <div class="form-group">
+            <label for="userType">Select User Type</label>
+            <select id="userType">
+                <option value="">-- Select --</option>
+                <option value="client">Client</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+
+        <!-- Client Form Fields -->
+        <div id="clientFields" class="form-fields">
+            <div class="form-group">
+                <label for="clientId">Client ID</label>
+                <input type="text" id="clientId" placeholder="Enter client ID">
+                <div class="hint">Leave blank to generate a new client ID automatically</div>
+            </div>
+            <button id="clientSubmit">Submit</button>
+        </div>
+
+        <!-- Admin Form Fields -->
+        <div id="adminFields" class="form-fields">
+            <div class="form-group">
+                <label for="adminId">Admin ID</label>
+                <input type="text" id="adminId" placeholder="Enter admin ID" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+            <button id="adminSubmit">Submit</button>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const userTypeSelect = document.getElementById('userType');
+            const clientFields = document.getElementById('clientFields');
+            const adminFields = document.getElementById('adminFields');
+            const clientSubmit = document.getElementById('clientSubmit');
+            const adminSubmit = document.getElementById('adminSubmit');
+            const statusDiv = document.getElementById('status');
+
+            // Handle dropdown change
+            userTypeSelect.addEventListener('change', function () {
+                // Hide all form fields first
+                clientFields.classList.remove('active');
+                adminFields.classList.remove('active');
+
+                // Show relevant form based on selection
+                if (this.value === 'client') {
+                    clientFields.classList.add('active');
+                } else if (this.value === 'admin') {
+                    adminFields.classList.add('active');
+                }
+
+                // Clear status message
+                statusDiv.className = 'status';
+                statusDiv.textContent = '';
+            });
+
+            // Generate a random client ID
+            function generateClientId() {
+                return 'client_' + Math.random().toString(36).substring(2, 10);
+            }
+
+            // Client form submission
+            clientSubmit.addEventListener('click', function () {
+                const clientId = document.getElementById('clientId').value.trim() || generateClientId();
+
+                // Simulate HTTP request
+                fetch('https://api.example.com/client', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ clientId })
+                })
+                    .then(response => {
+                        // This is just for demonstration since we're not actually making a real request
+                        console.log('Client submission:', { clientId });
+
+                        // Show success message
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = `Success! ${clientId.startsWith('client_') ? 'New client ID generated' : 'Client ID submitted'}: ${clientId}`;
+                    })
+                    .catch(error => {
+                        // Show error message
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = 'Error: Could not submit form';
+                    });
+            });
+
+            // Admin form submission
+            adminSubmit.addEventListener('click', function () {
+                const adminId = document.getElementById('adminId').value.trim();
+                const password = document.getElementById('password').value;
+
+                // Validate required fields
+                if (!adminId || !password) {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = 'Error: Admin ID and Password are required';
+                    return;
+                }
+
+                // Simulate HTTP request
+                fetch('https://api.example.com/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ adminId, password })
+                })
+                    .then(response => {
+                        // This is just for demonstration
+                        console.log('Admin submission:', { adminId, password: '********' });
+
+                        // Show success message
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = 'Success! Admin credentials submitted';
+                    })
+                    .catch(error => {
+                        // Show error message
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = 'Error: Could not submit form';
+                    });
+            });
+        });
+    </script>
+</body>
+
+</html>
