@@ -197,21 +197,23 @@
             clientSubmit.addEventListener('click', function () {
                 const clientId = document.getElementById('clientId').value.trim() || generateClientId();
 
-                // Simulate HTTP request
-                fetch('https://api.example.com/client', {
+                // HTTP request
+                fetch('http://localhost:3001/login/client', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ clientId })
+                    body: JSON.stringify({ id: clientId })
                 })
                     .then(response => {
-                        // This is just for demonstration since we're not actually making a real request
-                        console.log('Client submission:', { clientId });
-
-                        // Show success message
-                        statusDiv.className = 'status success';
+                        console.log('response recieved: ', response);
+                        if (response.ok){
+                            statusDiv.className = 'status success';
                         statusDiv.textContent = `Success! ${clientId.startsWith('client_') ? 'New client ID generated' : 'Client ID submitted'}: ${clientId}`;
+                        } else {
+                            statusDiv.className = 'status error';
+                            statusDiv.textContent = `Error: ${response.statusText}`;
+                        }
                     })
                     .catch(error => {
                         // Show error message
@@ -231,27 +233,29 @@
                     statusDiv.textContent = 'Error: Admin ID and Password are required';
                     return;
                 }
-
-                // Simulate HTTP request
-                fetch('https://api.example.com/admin', {
+                console.log('json data: ', JSON.stringify({ id: adminId, pass: password }))
+                // HTTP request
+                fetch('http://localhost:3001/login/admin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ adminId, password })
+                    body: JSON.stringify({ id: adminId, pass: password })
                 })
                     .then(response => {
-                        // This is just for demonstration
-                        console.log('Admin submission:', { adminId, password: '********' });
-
-                        // Show success message
-                        statusDiv.className = 'status success';
-                        statusDiv.textContent = 'Success! Admin credentials submitted';
+                        console.log('response recieved: ', response);
+                        if (response.ok){
+                            statusDiv.className = 'status success';
+                        statusDiv.textContent = `Success! Logged in with admin credentials`;
+                        } else {
+                            statusDiv.className = 'status error';
+                            statusDiv.textContent = `Error: ${response.statusText}`;
+                        }
                     })
                     .catch(error => {
                         // Show error message
                         statusDiv.className = 'status error';
-                        statusDiv.textContent = 'Error: Could not submit form';
+                        statusDiv.textContent = `Error: ${error}`;
                     });
             });
         });

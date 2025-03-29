@@ -46,6 +46,8 @@ without_http_pattern = re.compile(
 )
 file_pattern = re.compile(r"^file://")
 
+pict_scheme_pattern = re.compile(r"^pict://")
+
 
 class mainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -634,6 +636,12 @@ class mainWindow(QMainWindow):
                 )
                 self.httpsicon.setToolTip("You are viewing a local or shared file")
 
+            elif q.scheme() == "pict":
+                self.httpsicon.setPixmap(
+                    QPixmap(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "icons", "security.png"))
+                )
+                self.httpsicon.setToolTip("You are viewing an internal browser page")
+
             else:
                 # Set insecure padlock
                 self.httpsicon.setPixmap(
@@ -670,6 +678,7 @@ class mainWindow(QMainWindow):
 
     def navigate_to_url(self):
         in_url = self.url_bar.text()
+        print('requested for this url: ', in_url)
         url = ""
         """ if the text in the search box endswith one of the domain in the domains tuple, then "http://" will be added
             if the text is pre "http://" or "https://" added, then not"""
@@ -685,6 +694,11 @@ class mainWindow(QMainWindow):
             file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), in_url))
             local_url = QUrl.fromLocalFile(file_path)
             self.tabs.currentWidget().load(local_url)
+        
+        elif pict_scheme_pattern.search(in_url):
+            print('found url: ', in_url)
+            self.tabs.currentWidget().load(QUrl(in_url))
+            return
 
         elif without_http_pattern.search(in_url) and any(
             [i in in_url for i in ["http://", "https://"]]

@@ -21,15 +21,16 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     def interceptRequest(self, info):
         # print('called')
         url = info.requestUrl().toString()
-        try:
-            if url.startswith("pict://"):
-                print('found internal bwrowser path, should not have reached here, idk what to do')
-                # return internal_routes.get_page(url) # doesnt return anything
-            else:
-                # print('not internal route: ', url)
-                pass
-        except Exception as e:
-            print('error in interceptRequest() occurred: ', e)
+        # try:
+        #     if url.startswith("pict://"):
+        #         print('found internal bwrowser path, should not have reached here, idk what to do')
+        #         # info.redirect(QUrl(url))
+        #         # return internal_routes.get_page(url) # doesnt return anything
+        #     else:
+        #         # print('not internal route: ', url)
+        #         pass
+        # except Exception as e:
+        #     print('error in interceptRequest() occurred: ', e)
 
         domain = self.extract_domain(url)
         # print('domain recieved: ', domain)
