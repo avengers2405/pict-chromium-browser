@@ -1,3 +1,4 @@
+import json
 import re
 
 import requests
@@ -6,20 +7,20 @@ from PyQt5.QtCore import QUrl
 from controllers.errors import errorMsg
 from dotenv import load_dotenv
 import os
+from typing import TYPE_CHECKING
 load_dotenv()
+
+if TYPE_CHECKING:
+    from views import main_window
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     __logged_in: bool = False
-    def __init__(self):
-        super().__init__()
-        # self.server_url = server_url
-        # self.client_id = client_id
-        # self.auth_token = auth_token
+    def __init__(self, parent:"main_window.mainWindow"=None):
+        super().__init__(parent)
         self.whitelist = []
         self.blacklist = []
-        # Track approved main domains to allow their subresources
-        # self.approved_main_domains = set()
         self.update_lists()
+        self.parent_window = parent
     
     @classmethod
     def set_login(cls, val):
@@ -38,6 +39,12 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         if not self.__logged_in and not url.startswith("pict://") and not url.startswith(os.getenv('SERVER_URL')):
             # later add a redircetion to custom page saying you need to first log in
             # or maybe just redirect to the login page bruh.
+            self.parent_window.websocket_client.send_message(json.dumps({
+                "action": "log",
+                "actionType": "INTERNET_ACCESS",
+                "description": url,
+                "blocked": True,
+            }))
             print('blocking: ', url)
             info.block(True)
             return
@@ -50,11 +57,22 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             print('called by mainfraim')
             # Apply strict whitelist/blacklist rules
             if not self.is_url_allowed(domain):
+                self.parent_window.websocket_client.send_message(json.dumps({
+                    "action": "log",
+                    "actionType": "INTERNET_ACCESS",
+                    "description": url,
+                    "blocked": True,
+                }))
                 dlg = errorMsg("Access Denied: This website is not allowed by administrator")
                 dlg.exec_()
                 info.block(True)
                 # info.redirect(QUrl("about:blank"))
-            
+            self.parent_window.websocket_client.send_message(json.dumps({
+                "action": "log",
+                "actionType": "INTERNET_ACCESS",
+                "description": url,
+                "blocked": False,
+            }))
         # else allow everything not initiated explictly
     
     def is_url_allowed(self, domain):

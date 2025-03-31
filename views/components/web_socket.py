@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from views import main_window
 
 class WebSocketClient(QObject):
-    def __init__(self, url, parent:"main_window.mainWindow" =None):
+    def __init__(self, url, parent:"main_window.mainWindow" = None):
         super().__init__(parent)
         self.ping_timer = QTimer(self)
         self.ping_timer.timeout.connect(self.ping_server)
@@ -49,7 +49,7 @@ class WebSocketClient(QObject):
             print('parent is: ', parent)
     
     # '0' is the code to initialise the connection
-    # '1' is the code that connection is code
+    # '1' is the code that connection is closed
     # '2' is the code to ping 
     # '3' is the code for pong
     # '4' is the code for message
@@ -82,23 +82,26 @@ class WebSocketClient(QObject):
 
     @pyqtSlot(str)
     def on_message(self, message):
-        if message[0]=='0':
-            print('recieved config details: ', message[1:])
-        elif message[0]=='2':
-            print('3')
-        elif message[0]=='4':
-            # normal message recieved here
-            print('message: ', message[1:])
-        elif message[0]=='5':
-            self.socket.sendTextMessage('0'+json.dumps({
-                "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
-            }))
-        elif message[0]=='6':
-            # server successfully authenticated
-            self.parent_window.init_connected_browser()
-        elif message[0]=='8':
-            # handle server error here
-            pass
+        try:
+            if message[0]=='0':
+                print('recieved config details: ', message[1:])
+            elif message[0]=='2':
+                print('3')
+            elif message[0]=='4':
+                # normal message recieved here
+                print('message: ', message[1:])
+            elif message[0]=='5':
+                self.socket.sendTextMessage('0'+json.dumps({
+                    "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
+                }))
+            elif message[0]=='6':
+                # server successfully authenticated
+                self.parent_window.init_connected_browser()
+            elif message[0]=='8':
+                # handle server error here
+                pass
+        except Exception as e:
+            print('exception: ', e)
         print('MESSAGE RECIEVED: ', message)
         return
 
@@ -109,3 +112,10 @@ class WebSocketClient(QObject):
     
     def is_connected(self):
         return self.socket.state() == QAbstractSocket.ConnectedState
+
+    def send_message(self, message):
+        try:
+            self.socket.sendTextMessage('4'+message)
+        except Exception as e:
+            print('exception: ', e)
+        return

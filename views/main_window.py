@@ -57,7 +57,7 @@ class mainWindow(QMainWindow):
         super(mainWindow, self).__init__(*args, **kwargs)
 
         self.profile = QWebEngineProfile("SecureBrowserProfile")
-        self.interceptor = RequestInterceptor()
+        self.interceptor = RequestInterceptor(self)
         self.profile.setUrlRequestInterceptor(self.interceptor)
         self.scheme_handler = CustomUrlSchemeHandler()
         self.profile.installUrlSchemeHandler(b'pict', self.scheme_handler)
