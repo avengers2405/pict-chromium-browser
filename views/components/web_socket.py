@@ -1,4 +1,5 @@
 import json
+import uuid
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot, QTimer
 from PyQt5.QtWebSockets import QWebSocket
 import models.settings
@@ -52,6 +53,10 @@ class WebSocketClient(QObject):
     # '2' is the code to ping 
     # '3' is the code for pong
     # '4' is the code for message
+    # '5' send config details first
+    # '6' connection done
+    # '7' connecting through admin without login portal
+    # '8' error
     
     @pyqtSlot()
     def ping_server(self):
@@ -61,10 +66,11 @@ class WebSocketClient(QObject):
     @pyqtSlot()
     def on_connect(self):
         print('CONNECTED')
-        self.ping_timer.start(10000)
-        print('timer started')
-        self.parent_window.init_connected_browser()
-        print('function parent init browser called')
+        # self.ping_timer.start(10000) # no need to start ping timer bcz why to start it?
+        # print('timer started')
+        self.socket.sendTextMessage('0'+json.dumps({
+            "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
+        }))
         return
     
     @pyqtSlot()
@@ -77,9 +83,22 @@ class WebSocketClient(QObject):
     @pyqtSlot(str)
     def on_message(self, message):
         if message[0]=='0':
-            config_data = json.loads(message[1:])
-            self.sid = config_data.get('sid', None)
-            print('set sid', self.sid)
+            print('recieved config details: ', message[1:])
+        elif message[0]=='2':
+            print('3')
+        elif message[0]=='4':
+            # normal message recieved here
+            print('message: ', message[1:])
+        elif message[0]=='5':
+            self.socket.sendTextMessage('0'+json.dumps({
+                "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
+            }))
+        elif message[0]=='6':
+            # server successfully authenticated
+            self.parent_window.init_connected_browser()
+        elif message[0]=='8':
+            # handle server error here
+            pass
         print('MESSAGE RECIEVED: ', message)
         return
 

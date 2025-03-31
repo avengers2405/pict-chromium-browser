@@ -407,14 +407,10 @@ class mainWindow(QMainWindow):
         this function should only run once. if the client disconnects in the middle, this should not 
         run. instead, the above function, toggle_access() should run.
         """
-        print('function called to init browser')
         while self.tabs.count()>1:
             self.tabs.currentWidget().close()
-        print('excess tabs closed.')
         self.toggle_access(True)
-        print('toggled access')
         self.tabs.currentWidget().load(QUrl(models.settings.get_setting("startupPage", "https://google.com")))
-        print('loaded the startup page')
 
     @QtCore.pyqtSlot(int)
     def loadProgressHandler(self, prog):
