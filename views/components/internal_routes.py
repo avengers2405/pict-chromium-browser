@@ -7,7 +7,7 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.base_path = ''
-        print('instantiated this object')
+        # print('instantiated this object')
     
     def requestStarted(self, job: QWebEngineUrlRequestJob):
         url = job.requestUrl().toString()

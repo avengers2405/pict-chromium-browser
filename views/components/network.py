@@ -4,7 +4,9 @@ import requests
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo
 from PyQt5.QtCore import QUrl
 from controllers.errors import errorMsg
-from . import internal_routes
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     def __init__(self):
@@ -17,23 +19,28 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         # Track approved main domains to allow their subresources
         # self.approved_main_domains = set()
         self.update_lists()
+        self.__logged_in = False
+    
+    @classmethod
+    def set_login(cls, val):
+        cls.__logged_in = val
+    
+    @classmethod
+    def get_login(cls):
+        return cls.__logged_in
     
     def interceptRequest(self, info):
         # print('called')
         url = info.requestUrl().toString()
-        # try:
-        #     if url.startswith("pict://"):
-        #         print('found internal bwrowser path, should not have reached here, idk what to do')
-        #         # info.redirect(QUrl(url))
-        #         # return internal_routes.get_page(url) # doesnt return anything
-        #     else:
-        #         # print('not internal route: ', url)
-        #         pass
-        # except Exception as e:
-        #     print('error in interceptRequest() occurred: ', e)
-
         domain = self.extract_domain(url)
         # print('domain recieved: ', domain)
+
+        if not self.__logged_in and not url.startswith("pict://") and not url.startswith(os.getenv('SERVER_URL')):
+            # later add a redircetion to custom page saying you need to first log in
+            # or maybe just redirect to the login page bruh.
+            print('blocking: ', url)
+            info.block(True)
+            return
 
         # Determine request type
         resource_type = info.resourceType()
@@ -89,14 +96,14 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         return url_obj.host()
     
     def update_lists(self):
-        response = requests.get("http://localhost:3001/settings/bw_filter", timeout=5)
+        response = requests.get(f"{os.getenv('SERVER_URL')}/settings/bw_filter", timeout=5)
         if response.status_code==200:
             data = response.json()
             self.whitelist = data.get('whitelist', {"domains": []})["domains"]
             self.blacklist = data.get('blacklist', {"domains": []})["domains"]
 
-            print('blacklist set to: ', self.blacklist, type(data.get('blacklist', {"domains": []})["domains"]))
-            print('whitelist set to: ', self.whitelist, type(data.get('whitelist', {"domains": []})["domains"]))
+            # print('blacklist set to: ', self.blacklist, type(data.get('blacklist', {"domains": []})["domains"]))
+            # print('whitelist set to: ', self.whitelist, type(data.get('whitelist', {"domains": []})["domains"]))
             return True
         else:
             print('fetch failed')

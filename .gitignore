@@ -5,7 +5,7 @@ webBrowserDB.db
 .idea
 workspace.xml
 __pycache__/
-env
+.env
 Installer
 venv
 *.swp

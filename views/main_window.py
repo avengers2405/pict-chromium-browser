@@ -27,6 +27,7 @@ import controllers.errors
 import views.components.settings.about
 import views.components.settings.history
 import views.components.settings.settings
+import views.components.web_socket
 import controllers.tabs
 import views
 import models.settings
@@ -35,6 +36,7 @@ import os
 import re
 import pyperclip as pc
 import datetime
+from dotenv import load_dotenv
 
 
 # Regular expressions to match urls
@@ -47,6 +49,7 @@ without_http_pattern = re.compile(
 file_pattern = re.compile(r"^file://")
 
 pict_scheme_pattern = re.compile(r"^pict://")
+load_dotenv()
 
 
 class mainWindow(QMainWindow):
@@ -58,10 +61,12 @@ class mainWindow(QMainWindow):
         self.profile.setUrlRequestInterceptor(self.interceptor)
         self.scheme_handler = CustomUrlSchemeHandler()
         self.profile.installUrlSchemeHandler(b'pict', self.scheme_handler)
-        handler_installed = self.profile.urlSchemeHandler(b'pict')
-        print(f"Handler installed: {handler_installed is not None}")
-        print(f"Handler is same instance: {handler_installed is self.scheme_handler}")
-        # self.init_ui()
+        # handler_installed = self.profile.urlSchemeHandler(b'pict')
+        # print(f"Handler installed: {handler_installed is not None}")
+        # print(f"Handler is same instance: {handler_installed is self.scheme_handler}")
+        print('going for websocket')
+        self.websocket_client = views.components.web_socket.WebSocketClient("ws://localhost:3001", self)
+        print('web socket done')
 
     def init_ui(self):
         self.tabs = controllers.tabs.Tabs()  # create tabs
@@ -87,7 +92,7 @@ class mainWindow(QMainWindow):
 
         # Close current tab on Ctrl+W
         CloseCurrentTabKeyShortcut = QShortcut("Ctrl+W", self)
-        print("Ctrl+W pressed, argument sent: ", lambda: self.close_current_tab(self.tabs.currentIndex()))
+        # print("Ctrl+W pressed, argument sent: ", lambda: self.close_current_tab(self.tabs.currentIndex()))
         CloseCurrentTabKeyShortcut.activated.connect(
             lambda: self.close_current_tab(self.tabs.currentIndex())
         )
@@ -392,6 +397,9 @@ class mainWindow(QMainWindow):
     only one of them should be used since, for example, the associated slot is also called when
     it is loaded at 100% so it could be hidden since it can be invoked together with finished.
     """
+
+    def toggle_access(self, val):
+        RequestInterceptor.set_login(val)
 
     @QtCore.pyqtSlot(int)
     def loadProgressHandler(self, prog):
