@@ -75,8 +75,8 @@ class WebSocketClient(QObject):
     
     @pyqtSlot()
     def on_disconnect(self):
-        self.ping_timer.stop()
-        self.sid = None
+        # self.ping_timer.stop() # since never started
+        self.parent_window.toggle_access(False)
         print('DISCONNECTED')
         return
 

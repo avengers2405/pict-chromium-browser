@@ -5,3 +5,12 @@ Step 1:
 Hence, all masters will be treated as one and all clients as one. no individuality.
 
 Necessary settings will be stored on server and will be the independent source of truth
+
+Step 2:
+Add proper blocking so that if links like youtube are clicked they do not get blocked by dialog blocked, instead done more gracefully
+Also it seems multiple requests are made together when links like youtube are clicked so many blocking actionsa re taken even though youtube link is clicked once
+So ensure this is handled properly so that blocking action is not unnecessarily repeated
+
+You can give permssion to admin to decide whether something should be banned strictly or allowed in iframe, or maybe things like gform submissions, etc.
+
+Add proper url checking. for example "youtube.com" does not block youtube sites, we need to enter "www.youtube.com". So improve this.
