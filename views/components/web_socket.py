@@ -19,7 +19,7 @@ class WebSocketClient(QObject):
         self.socket.disconnected.connect(self.on_disconnect)
         self.socket.textMessageReceived.connect(self.on_message)
         self.socket.error.connect(self.on_error)
-        self.parent = parent
+        self.parent_window = parent
         self.states = {
             QAbstractSocket.UnconnectedState: "Unconnected",
             QAbstractSocket.HostLookupState: "Looking up host",
@@ -44,7 +44,7 @@ class WebSocketClient(QObject):
         if models.settings.get_setting("id", None) is not None:
             pass
         else:
-            self.parent.toggle_access(False)
+            self.parent_window.toggle_access(False)
             print('parent is: ', parent)
     
     # '0' is the code to initialise the connection
@@ -62,6 +62,9 @@ class WebSocketClient(QObject):
     def on_connect(self):
         print('CONNECTED')
         self.ping_timer.start(10000)
+        print('timer started')
+        self.parent_window.init_connected_browser()
+        print('function parent init browser called')
         return
     
     @pyqtSlot()

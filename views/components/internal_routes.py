@@ -63,6 +63,28 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                         """.encode('utf-8'))
                 buffer.seek(0)
                 return buffer
+        elif url == 'icc':
+            try:
+                html_page = open(os.path.join(os.path.dirname(__file__), '..', '..', 'utils', 'init_client_conn.html'))
+                buffer.write(html_page.read().encode('utf-8'))
+                buffer.seek(0)
+                return buffer
+            except Exception as e:
+                print("Error while opening file: ", e)
+                buffer.write("""
+                            <html>
+                                <head>
+                                    <title>
+                                        ${url}
+                                    </title>
+                                </head>
+                                <body>
+                                    Internal error. We apologize.
+                                </body>
+                            </html>
+                        """.encode('utf-8'))
+                buffer.seek(0)
+                return buffer
         else:
             buffer.write("""
                         <html>

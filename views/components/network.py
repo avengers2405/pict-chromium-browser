@@ -9,6 +9,7 @@ import os
 load_dotenv()
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
+    __logged_in: bool = False
     def __init__(self):
         super().__init__()
         # self.server_url = server_url
@@ -19,7 +20,6 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         # Track approved main domains to allow their subresources
         # self.approved_main_domains = set()
         self.update_lists()
-        self.__logged_in = False
     
     @classmethod
     def set_login(cls, val):

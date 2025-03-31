@@ -390,7 +390,7 @@ class mainWindow(QMainWindow):
         # Set minimum size
         self.setMinimumWidth(400)
 
-        self.tabs.currentWidget().load(QUrl("pict://login"))
+        self.tabs.currentWidget().load(QUrl("pict://icc"))
 
     """
     Instead of managing 2 slots associated with the progress and completion of loading,
@@ -400,6 +400,21 @@ class mainWindow(QMainWindow):
 
     def toggle_access(self, val):
         RequestInterceptor.set_login(val)
+    
+    def init_connected_browser(self):
+        """
+        this will run once the browser is opened and web socket connects to the server successfully.
+        this function should only run once. if the client disconnects in the middle, this should not 
+        run. instead, the above function, toggle_access() should run.
+        """
+        print('function called to init browser')
+        while self.tabs.count()>1:
+            self.tabs.currentWidget().close()
+        print('excess tabs closed.')
+        self.toggle_access(True)
+        print('toggled access')
+        self.tabs.currentWidget().load(QUrl(models.settings.get_setting("startupPage", "https://google.com")))
+        print('loaded the startup page')
 
     @QtCore.pyqtSlot(int)
     def loadProgressHandler(self, prog):
