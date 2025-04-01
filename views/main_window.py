@@ -61,12 +61,8 @@ class mainWindow(QMainWindow):
         self.profile.setUrlRequestInterceptor(self.interceptor)
         self.scheme_handler = CustomUrlSchemeHandler()
         self.profile.installUrlSchemeHandler(b'pict', self.scheme_handler)
-        # handler_installed = self.profile.urlSchemeHandler(b'pict')
-        # print(f"Handler installed: {handler_installed is not None}")
-        # print(f"Handler is same instance: {handler_installed is self.scheme_handler}")
-        print('going for websocket')
         self.websocket_client = views.components.web_socket.WebSocketClient("ws://localhost:3001", self)
-        print('web socket done')
+        self.managed_tabs = [] # an array to store tab objects + their metadata to specially manage them.
 
     def init_ui(self):
         self.tabs = controllers.tabs.Tabs()  # create tabs
@@ -390,7 +386,12 @@ class mainWindow(QMainWindow):
         # Set minimum size
         self.setMinimumWidth(400)
 
-        self.tabs.currentWidget().load(QUrl("pict://icc"))
+        # _browser = self.tabs.currentWidget().load(QUrl("pict://icc"))
+        _browser = self.add_new_tab(QUrl("pict://icc"))
+        self.managed_tabs.append({
+            "browser": _browser,
+            "label": "connecting_page"
+        })
 
     """
     Instead of managing 2 slots associated with the progress and completion of loading,
@@ -407,10 +408,23 @@ class mainWindow(QMainWindow):
         this function should only run once. if the client disconnects in the middle, this should not 
         run. instead, the above function, toggle_access() should run.
         """
-        while self.tabs.count()>1:
-            self.tabs.currentWidget().close()
         self.toggle_access(True)
-        self.tabs.currentWidget().load(QUrl(models.settings.get_setting("startupPage", "https://google.com")))
+        for tab in self.managed_tabs:
+            if tab.get("label", None) == "connecting_page":
+                if self.tabs.count()==1:
+                    self.tabs.currentWidget().load(QUrl(models.settings.get_setting("startupPage", "https://google.com")))
+                else:
+                    ind = self.tabs.indexOf(tab.get("browser", None))
+                    self.tabs.removeTab(ind)
+        self.tabs.currentWidget().reload()
+    
+    def disconnect_browser(self):
+        self.toggle_access(False)
+        _browser = self.add_new_tab(QUrl("pict://icc"))
+        self.managed_tabs.append({
+            "browser": _browser,
+            "label": "connecting_page"
+        })
 
     @QtCore.pyqtSlot(int)
     def loadProgressHandler(self, prog):
@@ -575,7 +589,7 @@ class mainWindow(QMainWindow):
         if qurl is None:
             qurl = QUrl(models.settings.settings_data["newTabPage"])
 
-        _browser = QWebEngineView()  # Define the main webview to browser the internet
+        _browser = QWebEngineView()  # Define the main webview to browse the internet
 
         # Set page
         _browser.setPage(views.components.custom_web_engine.customWebEnginePage(self.profile, _browser))
@@ -611,6 +625,8 @@ class mainWindow(QMainWindow):
 
         # update history when loading finished
         _browser.page().loadFinished.connect(self.updateHistory)
+
+        return _browser
 
     def showErrorDlg(self):
         dlg = controllers.errors.errorMsg()
