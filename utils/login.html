@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Portal</title>
+    <title>Admin Login</title>
     <style>
         * {
             margin: 0;
@@ -49,7 +49,6 @@
             font-weight: 500;
         }
 
-        select,
         input {
             width: 100%;
             padding: 12px 16px;
@@ -59,30 +58,10 @@
             transition: border-color 0.3s;
         }
 
-        select:focus,
         input:focus {
             outline: none;
             border-color: #4a90e2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .form-fields {
-            margin-top: 24px;
-            opacity: 0;
-            height: 0;
-            overflow: hidden;
-            transition: opacity 0.3s, height 0.3s;
-        }
-
-        .form-fields.active {
-            opacity: 1;
-            height: auto;
-        }
-
-        .hint {
-            font-size: 12px;
-            color: #888;
-            margin-top: 6px;
         }
 
         button {
@@ -125,102 +104,25 @@
 
 <body>
     <div class="container">
-        <h1>Access Portal</h1>
+        <h1>Admin Access Portal</h1>
+
         <div class="form-group">
-            <label for="userType">Select User Type</label>
-            <select id="userType">
-                <option value="">-- Select --</option>
-                <option value="client">Client</option>
-                <option value="admin">Admin</option>
-            </select>
+            <label for="adminId">Admin ID</label>
+            <input type="text" id="adminId" placeholder="Enter admin ID" required>
         </div>
-
-        <!-- Client Form Fields -->
-        <div id="clientFields" class="form-fields">
-            <div class="form-group">
-                <label for="clientId">Client ID</label>
-                <input type="text" id="clientId" placeholder="Enter client ID">
-                <div class="hint">Leave blank to generate a new client ID automatically</div>
-            </div>
-            <button id="clientSubmit">Submit</button>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password" required>
         </div>
-
-        <!-- Admin Form Fields -->
-        <div id="adminFields" class="form-fields">
-            <div class="form-group">
-                <label for="adminId">Admin ID</label>
-                <input type="text" id="adminId" placeholder="Enter admin ID" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter password" required>
-            </div>
-            <button id="adminSubmit">Submit</button>
-        </div>
+        <button id="adminSubmit">Login</button>
 
         <div id="status" class="status"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const userTypeSelect = document.getElementById('userType');
-            const clientFields = document.getElementById('clientFields');
-            const adminFields = document.getElementById('adminFields');
-            const clientSubmit = document.getElementById('clientSubmit');
             const adminSubmit = document.getElementById('adminSubmit');
             const statusDiv = document.getElementById('status');
-
-            // Handle dropdown change
-            userTypeSelect.addEventListener('change', function () {
-                // Hide all form fields first
-                clientFields.classList.remove('active');
-                adminFields.classList.remove('active');
-
-                // Show relevant form based on selection
-                if (this.value === 'client') {
-                    clientFields.classList.add('active');
-                } else if (this.value === 'admin') {
-                    adminFields.classList.add('active');
-                }
-
-                // Clear status message
-                statusDiv.className = 'status';
-                statusDiv.textContent = '';
-            });
-
-            // Generate a random client ID
-            function generateClientId() {
-                return 'client_' + Math.random().toString(36).substring(2, 10);
-            }
-
-            // Client form submission
-            clientSubmit.addEventListener('click', function () {
-                const clientId = document.getElementById('clientId').value.trim() || generateClientId();
-
-                // HTTP request
-                fetch('http://localhost:3001/login/client', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ id: clientId })
-                })
-                    .then(response => {
-                        console.log('response recieved: ', response);
-                        if (response.ok){
-                            statusDiv.className = 'status success';
-                        statusDiv.textContent = `Success! ${clientId.startsWith('client_') ? 'New client ID generated' : 'Client ID submitted'}: ${clientId}`;
-                        } else {
-                            statusDiv.className = 'status error';
-                            statusDiv.textContent = `Error: ${response.statusText}`;
-                        }
-                    })
-                    .catch(error => {
-                        // Show error message
-                        statusDiv.className = 'status error';
-                        statusDiv.textContent = 'Error: Could not submit form';
-                    });
-            });
 
             // Admin form submission
             adminSubmit.addEventListener('click', function () {
@@ -233,7 +135,7 @@
                     statusDiv.textContent = 'Error: Admin ID and Password are required';
                     return;
                 }
-                console.log('json data: ', JSON.stringify({ id: adminId, pass: password }))
+
                 // HTTP request
                 fetch('http://localhost:3001/login/admin', {
                     method: 'POST',
@@ -243,10 +145,10 @@
                     body: JSON.stringify({ id: adminId, pass: password })
                 })
                     .then(response => {
-                        console.log('response recieved: ', response);
-                        if (response.ok){
+                        console.log('response received: ', response);
+                        if (response.ok) {
                             statusDiv.className = 'status success';
-                        statusDiv.textContent = `Success! Logged in with admin credentials`;
+                            statusDiv.textContent = `Success! Logged in with admin credentials`;
                         } else {
                             statusDiv.className = 'status error';
                             statusDiv.textContent = `Error: ${response.statusText}`;

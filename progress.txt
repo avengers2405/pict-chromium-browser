@@ -16,3 +16,39 @@ You can give permssion to admin to decide whether something should be banned str
 Add proper url checking. for example "youtube.com" does not block youtube sites, we need to enter "www.youtube.com". So improve this.
 
 Automatic retries from client to connect to server in case of disconnection, till then obviously all access should be blocked
+
+Web sockets can be used to update admin dashboard in this manner:
+whenever our web sockets recieve an update from server about dashboard related changes, our web sockets call the self.parent_window function 
+to reload the dashboard page with changed details. Currently we will make server send all settings, which can be a little bulky, in future we can think about
+sending all settings first time and then sending only changes
+
+The way I am planning to connect to server from login page is:
+    i.  admin will enter all details on admin login page and press submit
+    ii. the details will hit server along with client_id (sent with request) to tell server to upgrade connection for this client_id to admin
+    iii.the server will maintain this information in code using hash map and whenever the client makes it next first request that NEEDS admin priveleges, it is 
+        checked whether it has admin upgrade is attached to ws. If not, then it is checked whether access update is present for the client_id in the hash map, 
+        if yes, the update will be attached to ws, and processed.
+    iv. the login page will recieve update from server whether login was successful or not. We will add a function in the html page that if login is successful, then 
+        it will make a request to pict://admin-success (or any similar req for other cases) that will indicate to browser that login is success.
+        Then browser would itself redirect / open new tab & page / could provide a button to open dashboard / etc.
+    v.  Opening these pages from custom scheme would take 2 arguments:
+        a.  The raw code with placeholders of type JSON inside script tags to accept data.
+        b.  The data that needs to be filled in this placeholder.
+    vi. Upon opening this page after pict://admin-success, the interceptRequest would itself have to call ws client and tell it to fetch admin data
+        so that first batch of data can be obtained
+    vii.All further updates would anyways be pushed to all entitites (clients, admins, alike probably) so ws will handle that automatically
+    viii.ws needs to be configured that whenever it recieves data (admin or client) it will call appropriate functions. Like if it recieves admin
+        dashboard data, it should automatically call reload function for the dashboard page with new data.
+    ix. How to choose to relaod specific sites, like dashboard? this can be done by using self.parent_window and maintaining self.managed_tabs
+        array from other classes wherever required.
+
+The issue is when the websocket will force the refresh of dashboard, if admin is typing something, ofcourse that will be lost. This is a problem.
+    i.  To solve this, one thing that can be done is to create a seperate editing page which would not refresh automatically. This is whoever cumbersome
+    ii. Another way to solve is to have a sort of edit button which when clicked, sends a request to internal route in browser to indicate that settings 
+        are being edited and refresh action should not be performed rn. However this would pose the issue of whether to indicate to admin if settings have
+        been changed or changed by someone else or not, if yes, then how will that be achieved? Long polling is one solution.
+
+
+Step 3:
+
+Add multithreading wherever needed for faster load times and where job can be done in background
