@@ -14,3 +14,5 @@ So ensure this is handled properly so that blocking action is not unnecessarily 
 You can give permssion to admin to decide whether something should be banned strictly or allowed in iframe, or maybe things like gform submissions, etc.
 
 Add proper url checking. for example "youtube.com" does not block youtube sites, we need to enter "www.youtube.com". So improve this.
+
+Automatic retries from client to connect to server in case of disconnection, till then obviously all access should be blocked

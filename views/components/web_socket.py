@@ -12,10 +12,12 @@ if TYPE_CHECKING:
 class WebSocketClient(QObject):
     def __init__(self, url, parent:"main_window.mainWindow" = None):
         super().__init__(parent)
-        self.ping_timer = QTimer(self)
-        self.ping_timer.timeout.connect(self.ping_server)
+        self.url = url
+        self.reconnect_timer = QTimer(self)
+        self.reconnect_timer.timeout.connect(self.reconnect_ws)
+        self.reconnect_timer.start(7000)
         self.socket = QWebSocket()
-        self.socket.open(QUrl(url))
+        # self.socket.open(QUrl(url)) # delegate this task to a function which will bne called upon timer expiry.
         self.socket.connected.connect(self.on_connect) # self.on_connect() function will be called if 'connected' pyQt signal is triggered. connect() function here binds the slot (function) to the signal
         self.socket.disconnected.connect(self.on_disconnect)
         self.socket.textMessageReceived.connect(self.on_message)
@@ -68,6 +70,7 @@ class WebSocketClient(QObject):
         print('CONNECTED')
         # self.ping_timer.start(10000) # no need to start ping timer bcz why to start it?
         # print('timer started')
+        self.reconnect_timer.stop()
         self.socket.sendTextMessage('0'+json.dumps({
             "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
         }))
@@ -76,7 +79,8 @@ class WebSocketClient(QObject):
     @pyqtSlot()
     def on_disconnect(self):
         # self.ping_timer.stop() # since never started
-        self.parent_window.toggle_access(False)
+        self.parent_window.disconnect_browser()
+        self.reconnect_timer.start(7000)
         print('DISCONNECTED')
         return
 
@@ -119,3 +123,9 @@ class WebSocketClient(QObject):
         except Exception as e:
             print('exception: ', e)
         return
+    
+    def reconnect_ws(self):
+        try:
+            self.socket.open(QUrl("ws://localhost:3001"))
+        except Exception as e:
+            print('connection to ws failed: ', e)
