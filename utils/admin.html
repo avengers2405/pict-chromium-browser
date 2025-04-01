@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Website Access Monitor</title>
+    <style>
+        /* --- Base Styles --- */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #f3f4f6;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #f9fafb;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            background-color: var(--secondary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* --- Cards --- */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* --- Search --- */
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* --- Table Enhancements --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Helps enforce column widths */
+            margin-bottom: 1.5rem; /* Add space below table before pagination */
+        }
+
+        th, td {
+            padding: 12px 10px; /* Adjust padding slightly */
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            /* Default word break for safety, override below */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Column Specific Styles */
+        th:nth-child(1), td:nth-child(1) { /* Client ID */
+    width: 15%;
+    min-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+th:nth-child(2), td:nth-child(2) { /* Action Type */
+    width: 15%;
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+/* === MODIFIED RULE FOR WEBSITE/DESCRIPTION === */
+th:nth-child(3), td:nth-child(3) { /* Website/Description */
+    width: 40%; /* Keep defined width */
+    white-space: nowrap; /* Prevent wrapping to new lines */
+    overflow: hidden; /* Hide content that overflows */
+    text-overflow: ellipsis; /* Show ... for hidden content */
+    /* Remove word-break and white-space: normal if they were previously here */
+}
+/* === END OF MODIFIED RULE === */
+
+th:nth-child(4), td:nth-child(4) { /* Timestamp */
+    width: 20%;
+    min-width: 160px;
+    white-space: nowrap;
+}
+th:nth-child(5), td:nth-child(5) { /* Status */
+    width: 10%;
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+        th {
+            font-weight: 500;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* Remove border from last row in tbody */
+        tbody tr:last-child td {
+             border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .timestamp {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+         /* --- List Management (Blacklist/Whitelist) --- */
+        .list-management {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .list-management {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .list-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .blacklist {
+            border-top: 3px solid var(--danger);
+        }
+
+        .whitelist {
+            border-top: 3px solid var(--success);
+        }
+
+        .url-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .add-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .url-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            min-height: 50px; /* Ensure it doesn't collapse when empty */
+        }
+
+        .url-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            word-break: break-all; /* Break long URLs */
+        }
+
+        .url-item:last-child {
+            border-bottom: none;
+        }
+
+        .remove-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px; /* Easier to click */
+            margin-left: 8px; /* Space from text */
+        }
+
+        /* --- States (Empty, Loading) --- */
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+         /* Specific empty state for table body */
+        td.empty-state {
+             text-align: center;
+             padding: 20px;
+             color: var(--text-light);
+             font-size: 14px;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            width: 100%; /* Ensure it takes full width */
+            min-height: 50px; /* Give it some height */
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px; /* Overlap border */
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- Misc --- */
+        .last-updated {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-blocked {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-allowed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        /* --- Pagination --- */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-top: -1rem; /* Pull closer to table */
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .pagination-controls button {
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text);
+            transition: background-color 0.2s ease;
+        }
+
+        .pagination-controls button:hover:not(:disabled) {
+            background-color: #e5e7eb;
+        }
+
+        .pagination-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            margin: 0 15px;
+        }
+
+        /* --- Animation --- */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Website Access Monitor</h1>
+            <button id="refreshBtn" class="refresh-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2v6h-6"></path>
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                    <path d="M3 22v-6h6"></path>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                </svg>
+                Refresh Data
+            </button>
+        </header>
+
+        <div class="list-management">
+            <div class="list-card blacklist">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Blacklisted Websites</h2>
+                        <div id="blacklistLastUpdated" class="last-updated"></div>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab active" data-tab="domains">Domains</div>
+                    <div class="tab" data-tab="keywords">Keywords</div>
+                </div>
+                <div class="tab-content active" id="domains-content">
+                    <div class="url-input-container">
+                        <input type="text" id="domainInput" class="url-input" placeholder="Enter domain to blacklist">
+                        <button id="addToDomains" class="add-btn">Add</button>
+                    </div>
+                    <div class="url-list" id="domainsContainer">
+                        <div class="loading"><div class="spinner"></div></div> </div>
+                </div>
+                <div class="tab-content" id="keywords-content">
+                    <div class="url-input-container">
+                        <input type="text" id="keywordInput" class="url-input" placeholder="Enter keyword to blacklist">
+                        <button id="addToKeywords" class="add-btn">Add</button>
+                    </div>
+                    <div class="url-list" id="keywordsContainer">
+                        <div class="loading"><div class="spinner"></div></div> </div>
+                </div>
+            </div>
+
+            <div class="list-card whitelist">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Whitelisted Websites</h2>
+                        <div id="whitelistLastUpdated" class="last-updated"></div>
+                    </div>
+                </div>
+                <div class="url-input-container">
+                    <input type="text" id="whitelistInput" class="url-input" placeholder="Enter website URL to whitelist">
+                    <button id="addToWhitelist" class="add-btn">Add</button>
+                </div>
+                <div class="url-list" id="whitelistContainer">
+                     <div class="loading"><div class="spinner"></div></div> </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Client Website Access Log</h2>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by client ID or website...">
+            </div>
+            <div id="accessTableContainer">
+                <table id="accessTable">
+                    <thead>
+                        <tr>
+                            <th>Client ID</th>
+                            <th>Action Type</th>
+                            <th>Website/Description</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accessTableBody">
+                         <tr>
+                             <td colspan="5" class="loading"><div class="spinner"></div></td>
+                         </tr>
+                    </tbody>
+                </table>
+                <div id="paginationControls" class="pagination-controls" style="display: none;"> <button id="prevPageBtn" disabled>Previous</button>
+                    <span id="pageInfo" class="page-info">Page 1 of 1</span>
+                    <button id="nextPageBtn" disabled>Next</button>
+                </div>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store data
+        let clientData = [];
+        let blacklistSettings = null;
+        let whitelistUrls = []; // Updated from fetch or add/remove
+
+        // --- Pagination State ---
+        let currentPage = 1;
+        const itemsPerPage = 25; // Number of log entries per page
+        let totalFilteredItems = 0; // Total items matching current filter
+
+        // --- DOM elements ---
+        const accessTableBody = document.getElementById('accessTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const domainInput = document.getElementById('domainInput');
+        const keywordInput = document.getElementById('keywordInput');
+        const whitelistInput = document.getElementById('whitelistInput');
+        const addToDomainsBtn = document.getElementById('addToDomains');
+        const addToKeywordsBtn = document.getElementById('addToKeywords');
+        const addToWhitelistBtn = document.getElementById('addToWhitelist');
+        const domainsContainer = document.getElementById('domainsContainer');
+        const keywordsContainer = document.getElementById('keywordsContainer');
+        const whitelistContainer = document.getElementById('whitelistContainer');
+        const blacklistLastUpdatedElement = document.getElementById('blacklistLastUpdated');
+        const whitelistLastUpdatedElement = document.getElementById('whitelistLastUpdated');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const paginationControls = document.getElementById('paginationControls');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageInfo = document.getElementById('pageInfo');
+
+        // --- Configuration ---
+        const API_BASE_URL = 'http://localhost:3001'; // Your backend URL
+
+        // --- Utility Functions ---
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '-';
+            try {
+                const date = new Date(timestamp);
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid timestamp received:', timestamp);
+                    return 'Invalid Date';
+                }
+                return date.toLocaleString(undefined, {
+                     year: 'numeric', month: 'short', day: 'numeric',
+                     hour: 'numeric', minute: '2-digit', second: '2-digit'
+                });
+            } catch (error) {
+                console.error('Error formatting timestamp:', timestamp, error);
+                return typeof timestamp === 'string' ? timestamp : 'Error';
+            }
+        }
+
+        // Show loading spinner inside a container
+        function showLoading(container) {
+            if (!container) {
+                console.error("Attempted to show loading on null container");
+                return;
+            }
+            if (container.tagName === 'TBODY') {
+                 container.innerHTML = `<tr><td colspan="${container.previousElementSibling?.rows?.[0]?.cells?.length || 5}" class="loading"><div class="spinner"></div></td></tr>`;
+            } else {
+                 container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            }
+        }
+
+        // Show empty state message inside a container
+         function showEmptyState(container, message = "No data available") {
+             if (!container) return;
+             if (container.tagName === 'TBODY') {
+                 container.innerHTML = `<tr><td colspan="${container.previousElementSibling?.rows?.[0]?.cells?.length || 5}" class="empty-state">${message}</td></tr>`;
+             } else {
+                 container.innerHTML = `<div class="empty-state">${message}</div>`;
+             }
+         }
+
+         // Show error message inside a container
+          function showErrorState(container, message = "Error loading data") {
+              if (!container) return;
+              if (container.tagName === 'TBODY') {
+                  container.innerHTML = `<tr><td colspan="${container.previousElementSibling?.rows?.[0]?.cells?.length || 5}" class="empty-state" style="color: var(--danger);">${message}</td></tr>`;
+              } else {
+                  container.innerHTML = `<div class="empty-state" style="color: var(--danger);">${message}</div>`;
+              }
+          }
+
+
+        // --- Data Fetching ---
+        async function fetchData() {
+            console.log('Starting data fetch...');
+            showLoading(accessTableBody);
+            showLoading(domainsContainer);
+            showLoading(keywordsContainer);
+            showLoading(whitelistContainer);
+            paginationControls.style.display = 'none'; // Hide pagination during load
+            blacklistLastUpdatedElement.textContent = '';
+            whitelistLastUpdatedElement.textContent = '';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/clientdata`);
+                if (!response.ok) {
+                    let errorBody = 'Unknown error';
+                     try { const errorData = await response.json(); errorBody = errorData.error || JSON.stringify(errorData); } catch (parseError) { }
+                    throw new Error(`HTTP error! Status: ${response.status} - ${errorBody}`);
+                }
+
+                const data = await response.json();
+                console.log('Fetched data:', data);
+
+                // Store client data
+                clientData = (data.clientData && Array.isArray(data.clientData)) ? data.clientData : [];
+
+                // Find blacklist and whitelist settings
+                blacklistSettings = null;
+                whitelistUrls = [];
+                if (data.settings && Array.isArray(data.settings)) {
+                    blacklistSettings = data.settings.find(setting => setting.type === 'BLACKLIST');
+                    const whitelistSetting = data.settings.find(setting => setting.type === 'WHITELIST');
+                    if (whitelistSetting?.data?.urls && Array.isArray(whitelistSetting.data.urls)) {
+                         whitelistUrls = whitelistSetting.data.urls;
+                    } else if (whitelistSetting) { console.warn("Whitelist setting found but 'data.urls' is invalid:", whitelistSetting); }
+                } else { console.warn('Invalid or missing settings in response:', data.settings); }
+
+                 // Ensure blacklistSettings.data structure
+                 if (blacklistSettings && typeof blacklistSettings.data !== 'object') blacklistSettings.data = {};
+                 if (blacklistSettings && !Array.isArray(blacklistSettings.data?.domains)) blacklistSettings.data.domains = [];
+                 if (blacklistSettings && !Array.isArray(blacklistSettings.data?.keywords)) blacklistSettings.data.keywords = [];
+
+                // --- Reset Pagination and Render ---
+                currentPage = 1; // Reset to first page on new data fetch
+                renderAccessTable(clientData); // Initial render uses full data
+                renderBlacklist();
+                renderWhitelist();
+
+                console.log('Data fetch and render complete.');
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showErrorState(accessTableBody, `Error loading log: ${error.message}`);
+                showErrorState(domainsContainer, `Error loading blacklist: ${error.message}`);
+                showErrorState(keywordsContainer, ``);
+                showErrorState(whitelistContainer, `Error loading whitelist: ${error.message}`);
+                paginationControls.style.display = 'none';
+            }
+        }
+
+        // --- Rendering Functions ---
+
+        // Render access data table (Handles Filtering, Sorting, Pagination)
+        function renderAccessTable(fullLogData) {
+            if (!fullLogData) {
+                 console.error("renderAccessTable called with null data");
+                 showEmptyState(accessTableBody, "Error displaying logs.");
+                 paginationControls.style.display = 'none';
+                 return;
+            }
+
+            // 1. Filter Data based on search input
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const filteredData = fullLogData.filter(item => {
+                if (!searchTerm) return true;
+                const entityIdMatch = item.entityId && item.entityId.toLowerCase().includes(searchTerm);
+                const descriptionMatch = item.description && item.description.toLowerCase().includes(searchTerm);
+                return entityIdMatch || descriptionMatch;
+            });
+
+            // 2. Sort Data (newest first)
+            const sortedData = [...filteredData].sort((a, b) => {
+                 const dateA = a.timestamp ? new Date(a.timestamp) : null;
+                 const dateB = b.timestamp ? new Date(b.timestamp) : null;
+                 if (dateA && dateB && !isNaN(dateA) && !isNaN(dateB)) return dateB - dateA;
+                 else if (dateA && !isNaN(dateA)) return -1;
+                 else if (dateB && !isNaN(dateB)) return 1;
+                 else return 0;
+            });
+
+            // 3. Pagination Calculations
+            totalFilteredItems = sortedData.length;
+            const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            if (totalPages === 0) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedData = sortedData.slice(startIndex, endIndex);
+
+            console.log(`Rendering page ${currentPage}/${totalPages}. Items ${startIndex + 1}-${Math.min(endIndex, totalFilteredItems)} of ${totalFilteredItems}.`);
+
+            // 4. Render Table Rows
+            accessTableBody.innerHTML = ''; // Clear previous content
+
+            if (paginatedData.length === 0) {
+                const message = searchTerm ? `No logs found matching "${searchInput.value}"` : "No client access logs found.";
+                showEmptyState(accessTableBody, message);
+                paginationControls.style.display = 'none'; // Hide controls if no data
+            } else {
+                paginatedData.forEach(item => {
+                    const row = document.createElement('tr');
+                    let statusBadge = '-'; // Default status
+                    if (item.actionType === 'INTERNET_ACCESS') {
+                        if (item.blocked === true) statusBadge = '<span class="badge badge-blocked">Blocked</span>';
+                        else if (item.blocked === false) statusBadge = '<span class="badge badge-allowed">Allowed</span>';
+                    }
+                    const displayEntityId = item.entityId ? (item.entityId.length > 15 ? item.entityId.substring(0, 10) + '...' : item.entityId) : '-';
+                    const displayDescription = item.description || '-';
+
+                    row.innerHTML = `
+                        <td title="${item.entityId || ''}">${displayEntityId}</td>
+                        <td>${item.actionType || '-'}</td>
+                        <td title="${item.description || ''}">${displayDescription}</td>
+                        <td class="timestamp">${formatTimestamp(item.timestamp)}</td>
+                        <td>${statusBadge}</td>
+                    `;
+                    accessTableBody.appendChild(row);
+                });
+
+                // 5. Update Pagination Controls UI
+                updatePaginationUI(totalPages);
+                paginationControls.style.display = 'flex'; // Show controls
+            }
+        }
+
+        // Update pagination buttons and info text
+        function updatePaginationUI(totalPages) {
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages > 0 ? totalPages : 1}`;
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+        }
+
+        // Render blacklist domains and keywords
+        function renderBlacklist() {
+             // Domains
+            const domains = blacklistSettings?.data?.domains || [];
+            if (domains.length === 0) { showEmptyState(domainsContainer, "No blacklisted domains"); }
+            else {
+                 domainsContainer.innerHTML = '';
+                 domains.forEach(domain => {
+                    const item = document.createElement('div'); item.className = 'url-item';
+                    item.innerHTML = `<span>${domain}</span><button class="remove-btn" data-value="${domain}" data-type="domain" title="Remove domain">Remove</button>`;
+                    item.querySelector('.remove-btn').addEventListener('click', handleRemoveFromBlacklist);
+                    domainsContainer.appendChild(item);
+                });
+            }
+            // Keywords
+            const keywords = blacklistSettings?.data?.keywords || [];
+            if (keywords.length === 0) { showEmptyState(keywordsContainer, "No blacklisted keywords"); }
+            else {
+                 keywordsContainer.innerHTML = '';
+                 keywords.forEach(keyword => {
+                     const item = document.createElement('div'); item.className = 'url-item';
+                     item.innerHTML = `<span>${keyword}</span><button class="remove-btn" data-value="${keyword}" data-type="keyword" title="Remove keyword">Remove</button>`;
+                      item.querySelector('.remove-btn').addEventListener('click', handleRemoveFromBlacklist);
+                     keywordsContainer.appendChild(item);
+                 });
+             }
+             // Timestamp
+             blacklistLastUpdatedElement.textContent = blacklistSettings?.data?.lastUpdated ? `Last updated: ${formatTimestamp(blacklistSettings.data.lastUpdated)}` : 'Last updated: N/A';
+        }
+
+        // Render whitelist
+        function renderWhitelist() {
+             if (whitelistUrls.length === 0) { showEmptyState(whitelistContainer, "No whitelisted websites"); }
+             else {
+                 whitelistContainer.innerHTML = '';
+                 whitelistUrls.forEach(url => {
+                     const item = document.createElement('div'); item.className = 'url-item';
+                     item.innerHTML = `<span>${url}</span><button class="remove-btn" data-value="${url}" data-list="whitelist" title="Remove URL">Remove</button>`;
+                      item.querySelector('.remove-btn').addEventListener('click', handleRemoveFromWhitelist);
+                     whitelistContainer.appendChild(item);
+                 });
+             }
+             // Timestamp (Example: Show last render time, ideally fetch from backend setting)
+            whitelistLastUpdatedElement.textContent = `List updated: ${formatTimestamp(new Date())}`;
+        }
+
+        // --- Pagination Event Handlers ---
+        function goToPage(page) {
+            const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
+             if (page >= 1 && page <= totalPages && page !== currentPage) {
+                  currentPage = page;
+                  renderAccessTable(clientData); // Re-render with the full data set
+             }
+        }
+
+        function prevPage() { if (currentPage > 1) goToPage(currentPage - 1); }
+        function nextPage() { const totalPages = Math.ceil(totalFilteredItems / itemsPerPage); if (currentPage < totalPages) goToPage(currentPage + 1); }
+
+        // --- Update Functions (Interacting with Backend) ---
+
+         // Generic function to update settings on the server
+         async function updateSettings(settingsObject) {
+             console.log("Attempting to update settings:", settingsObject);
+             try {
+                 // Basic check - needs ID for update, unless backend handles creation by type
+                 if (!settingsObject || (!settingsObject.id && !settingsObject.type)) {
+                     console.error("Update attempted without ID or Type:", settingsObject);
+                     throw new Error("Cannot update setting without identifier (ID or Type).");
+                 }
+                 const response = await fetch(`${API_BASE_URL}/settings`, {
+                     method: 'POST', // Or PUT - depends on your backend API design
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify(settingsObject)
+                 });
+                 if (!response.ok) {
+                      let errorBody = 'Unknown error'; try { const errData = await response.json(); errorBody = errData.error || JSON.stringify(errData); } catch (e) {}
+                     throw new Error(`Failed to update settings: ${response.status} - ${errorBody}`);
+                 }
+                 const updatedSettings = await response.json();
+                 console.log("Settings updated successfully via API:", updatedSettings);
+                 return updatedSettings;
+             } catch (error) {
+                 console.error('Error updating settings via API:', error);
+                 alert(`Error saving settings: ${error.message}`);
+                 throw error; // Re-throw for calling function
+             }
+         }
+
+
+        // --- Event Handlers for Lists ---
+
+         // Add domain to blacklist
+         async function handleAddDomain() {
+             const domain = domainInput.value.trim().toLowerCase();
+             if (!domain) return;
+             if (!blacklistSettings?.data) { alert('Blacklist settings not loaded.'); return; }
+             if (blacklistSettings.data.domains.includes(domain)) { alert('Domain already blacklisted.'); return; }
+
+             const originalDomains = [...blacklistSettings.data.domains];
+             blacklistSettings.data.domains.push(domain); // Optimistic update
+             renderBlacklist(); domainInput.value = '';
+
+             try {
+                 showLoading(domainsContainer);
+                 blacklistSettings.data.lastUpdated = new Date().toISOString();
+                 const updated = await updateSettings(blacklistSettings);
+                 blacklistSettings = updated; // Use response from server
+                 renderBlacklist();
+             } catch (error) {
+                 blacklistSettings.data.domains = originalDomains; renderBlacklist(); // Rollback
+             }
+         }
+
+         // Add keyword to blacklist
+         async function handleAddKeyword() {
+             const keyword = keywordInput.value.trim().toLowerCase();
+             if (!keyword) return;
+             if (!blacklistSettings?.data) { alert('Blacklist settings not loaded.'); return; }
+             if (blacklistSettings.data.keywords.includes(keyword)) { alert('Keyword already blacklisted.'); return; }
+
+             const originalKeywords = [...blacklistSettings.data.keywords];
+             blacklistSettings.data.keywords.push(keyword); // Optimistic update
+             renderBlacklist(); keywordInput.value = '';
+
+             try {
+                 showLoading(keywordsContainer);
+                 blacklistSettings.data.lastUpdated = new Date().toISOString();
+                 const updated = await updateSettings(blacklistSettings);
+                 blacklistSettings = updated;
+                 renderBlacklist();
+             } catch (error) {
+                 blacklistSettings.data.keywords = originalKeywords; renderBlacklist(); // Rollback
+             }
+         }
+
+        // Add URL to whitelist (Requires backend logic for WHITELIST type settings)
+        async function handleAddToWhitelist() {
+            const url = whitelistInput.value.trim();
+            if (!url) return;
+            if (whitelistUrls.includes(url)) { alert('URL already whitelisted.'); return; }
+
+            // Check blacklist conflict
+             if (blacklistSettings?.data?.domains.includes(url)) {
+                  if (confirm(`"${url}" is blacklisted. Remove from blacklist and add to whitelist?`)) {
+                       try { await handleRemoveFromBlacklist({ target: { dataset: { value: url, type: 'domain' } } }, true); } // true = skip confirm
+                       catch (error) { alert(`Could not remove "${url}" from blacklist. Aborting add to whitelist.`); return; }
+                  } else { return; } // User cancelled blacklist removal
+             }
+
+             // Find or prepare the whitelist setting object for update
+              let whitelistSetting = (clientData.settings || []).find(s => s.type === 'WHITELIST');
+              if (!whitelistSetting) {
+                   // If your backend can create a new setting based on type:
+                   whitelistSetting = { type: 'WHITELIST', data: { urls: [], lastUpdated: null } };
+                   console.log("Creating structure for new WHITELIST setting update.");
+                   // If backend requires an explicit create endpoint, this will fail without more logic
+              }
+              if (!whitelistSetting.data) whitelistSetting.data = {};
+              if (!Array.isArray(whitelistSetting.data.urls)) whitelistSetting.data.urls = [];
+
+             const originalWhitelist = [...whitelistUrls];
+             const localOriginalUrls = [...whitelistSetting.data.urls]; // Backup setting state
+
+             whitelistUrls.push(url); // Optimistic UI update
+             whitelistSetting.data.urls.push(url); // Update object to be sent
+             renderWhitelist(); whitelistInput.value = '';
+
+             try {
+                  showLoading(whitelistContainer);
+                  whitelistSetting.data.lastUpdated = new Date().toISOString();
+                  const updatedSetting = await updateSettings(whitelistSetting);
+                  // Update global vars from response
+                   whitelistUrls = updatedSetting?.data?.urls || [];
+                   // Update the setting object within clientData.settings if needed
+                   const settingIndex = (clientData.settings || []).findIndex(s => s.type === 'WHITELIST');
+                   if (settingIndex !== -1) clientData.settings[settingIndex] = updatedSetting;
+                   else if(clientData.settings) clientData.settings.push(updatedSetting); else clientData.settings = [updatedSetting];
+
+                   renderWhitelist();
+             } catch (error) {
+                  whitelistUrls = originalWhitelist; // Rollback global state
+                  whitelistSetting.data.urls = localOriginalUrls; // Rollback object state
+                  renderWhitelist(); // Rollback UI
+             }
+        }
+
+        // Remove item from blacklist
+         async function handleRemoveFromBlacklist(event, skipConfirm = false) {
+             const value = event.target.dataset.value; const type = event.target.dataset.type;
+             if (!value || !type || !blacklistSettings?.data) return;
+             if (!skipConfirm && !confirm(`Remove "${value}" (${type}) from blacklist?`)) return;
+
+             let originalItems, targetContainer;
+             if (type === 'domain') { originalItems = [...blacklistSettings.data.domains]; blacklistSettings.data.domains = blacklistSettings.data.domains.filter(d => d !== value); targetContainer = domainsContainer; }
+             else if (type === 'keyword') { originalItems = [...blacklistSettings.data.keywords]; blacklistSettings.data.keywords = blacklistSettings.data.keywords.filter(k => k !== value); targetContainer = keywordsContainer; }
+             else return;
+
+             renderBlacklist(); // Optimistic UI update
+
+             try {
+                 showLoading(targetContainer);
+                 blacklistSettings.data.lastUpdated = new Date().toISOString();
+                 const updated = await updateSettings(blacklistSettings);
+                 blacklistSettings = updated; renderBlacklist();
+             } catch (error) {
+                 if (type === 'domain') blacklistSettings.data.domains = originalItems;
+                 if (type === 'keyword') blacklistSettings.data.keywords = originalItems;
+                 renderBlacklist(); // Rollback UI
+                  throw error; // Re-throw for handleAddToWhitelist conflict resolution
+             }
+         }
+
+        // Remove URL from whitelist
+         async function handleRemoveFromWhitelist(event) {
+             const url = event.target.dataset.value;
+             if (!url || !confirm(`Remove "${url}" from whitelist?`)) return;
+
+             let whitelistSetting = (clientData.settings || []).find(s => s.type === 'WHITELIST');
+             if (!whitelistSetting?.data?.urls) { alert("Whitelist settings error."); return; }
+
+             const originalWhitelist = [...whitelistUrls];
+             const localOriginalUrls = [...whitelistSetting.data.urls];
+
+             whitelistUrls = whitelistUrls.filter(item => item !== url); // Optimistic UI
+             whitelistSetting.data.urls = whitelistSetting.data.urls.filter(item => item !== url); // Update object
+             renderWhitelist();
+
+             try {
+                  showLoading(whitelistContainer);
+                  whitelistSetting.data.lastUpdated = new Date().toISOString();
+                  const updatedSetting = await updateSettings(whitelistSetting);
+                   whitelistUrls = updatedSetting?.data?.urls || [];
+                   // Update clientData.settings
+                   const settingIndex = (clientData.settings || []).findIndex(s => s.type === 'WHITELIST');
+                   if (settingIndex !== -1) clientData.settings[settingIndex] = updatedSetting;
+                   renderWhitelist();
+             } catch (error) {
+                  whitelistUrls = originalWhitelist; whitelistSetting.data.urls = localOriginalUrls; renderWhitelist(); // Rollback
+             }
+         }
+
+         // Handle tab switching in blacklist card
+         function switchTab(event) {
+             const clickedTab = event.target;
+             if (!clickedTab.classList.contains('tab')) return;
+             const tabId = clickedTab.dataset.tab; if (!tabId) return;
+             const parentCard = clickedTab.closest('.list-card'); if (!parentCard) return;
+             parentCard.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab === clickedTab));
+             parentCard.querySelectorAll('.tab-content').forEach(content => content.classList.toggle('active', content.id === `${tabId}-content`));
+         }
+
+        // --- Initialization ---
+        function init() {
+            fetchData(); // Fetch initial data
+
+            // Search listener - Reset page to 1 and re-render table
+            searchInput.addEventListener('input', () => {
+                 currentPage = 1;
+                 renderAccessTable(clientData);
+             });
+
+            // Refresh button
+            refreshBtn.addEventListener('click', fetchData);
+
+            // Pagination listeners
+             prevPageBtn.addEventListener('click', prevPage);
+             nextPageBtn.addEventListener('click', nextPage);
+
+            // Blacklist listeners
+             addToDomainsBtn.addEventListener('click', handleAddDomain);
+             addToKeywordsBtn.addEventListener('click', handleAddKeyword);
+             domainInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddDomain(); });
+             keywordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddKeyword(); });
+
+             // Whitelist listeners
+             addToWhitelistBtn.addEventListener('click', handleAddToWhitelist);
+             whitelistInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAddToWhitelist(); });
+
+             // Tab switching listener (delegated)
+              document.querySelector('.list-card.blacklist')?.addEventListener('click', switchTab); // Use optional chaining if element might not exist
+
+            console.log("Website Access Monitor Initialized");
+        }
+
+        // Start the application when the DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
