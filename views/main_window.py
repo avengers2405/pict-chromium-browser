@@ -386,12 +386,12 @@ class mainWindow(QMainWindow):
         # Set minimum size
         self.setMinimumWidth(400)
 
-        # _browser = self.tabs.currentWidget().load(QUrl("pict://icc"))
-        _browser = self.add_new_tab(QUrl("pict://icc"))
-        self.managed_tabs.append({
-            "browser": _browser,
-            "label": "connecting_page"
-        })
+        _browser = self.tabs.currentWidget().load(QUrl("pict://icc"))
+        # _browser = self.add_new_tab(QUrl("pict://icc"))
+        # self.managed_tabs.append({
+        #     "browser": _browser,
+        #     "label": "connecting_page"
+        # })
 
     """
     Instead of managing 2 slots associated with the progress and completion of loading,
@@ -408,15 +408,25 @@ class mainWindow(QMainWindow):
         this function should only run once. if the client disconnects in the middle, this should not 
         run. instead, the above function, toggle_access() should run.
         """
+        while self.tabs.count()>1:
+            self.tabs.currentWidget().close()
+        self.toggle_access(True)
+        self.tabs.currentWidget().load(QUrl(models.settings.get_setting("startupPage", "https://google.com")))
+    
+    def init_reconnected_browser(self):
+        """
+        this will run only on reconnection trials, not on initial connection
+        """
         self.toggle_access(True)
         for tab in self.managed_tabs:
             if tab.get("label", None) == "connecting_page":
                 if self.tabs.count()==1:
+                    # practically should never be reached
                     self.tabs.currentWidget().load(QUrl(models.settings.get_setting("startupPage", "https://google.com")))
                 else:
                     ind = self.tabs.indexOf(tab.get("browser", None))
                     self.tabs.removeTab(ind)
-        self.tabs.currentWidget().reload()
+        # self.tabs.currentWidget().reload() # reload only if a site was under loading progress when server disconnected and failed to load.
     
     def disconnect_browser(self):
         self.toggle_access(False)

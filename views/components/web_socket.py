@@ -15,9 +15,10 @@ class WebSocketClient(QObject):
         self.url = url
         self.reconnect_timer = QTimer(self)
         self.reconnect_timer.timeout.connect(self.reconnect_ws)
-        self.reconnect_timer.start(7000)
+        # self.reconnect_timer.start(7000)
+        self.is_reconnect = False
         self.socket = QWebSocket()
-        # self.socket.open(QUrl(url)) # delegate this task to a function which will bne called upon timer expiry.
+        self.socket.open(QUrl(url)) 
         self.socket.connected.connect(self.on_connect) # self.on_connect() function will be called if 'connected' pyQt signal is triggered. connect() function here binds the slot (function) to the signal
         self.socket.disconnected.connect(self.on_disconnect)
         self.socket.textMessageReceived.connect(self.on_message)
@@ -70,7 +71,8 @@ class WebSocketClient(QObject):
         print('CONNECTED')
         # self.ping_timer.start(10000) # no need to start ping timer bcz why to start it?
         # print('timer started')
-        self.reconnect_timer.stop()
+        if self.is_reconnect:
+            self.reconnect_timer.stop()
         self.socket.sendTextMessage('0'+json.dumps({
             "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
         }))
@@ -81,6 +83,7 @@ class WebSocketClient(QObject):
         # self.ping_timer.stop() # since never started
         self.parent_window.disconnect_browser()
         self.reconnect_timer.start(7000)
+        self.is_reconnect = True
         print('DISCONNECTED')
         return
 
@@ -100,7 +103,10 @@ class WebSocketClient(QObject):
                 }))
             elif message[0]=='6':
                 # server successfully authenticated
-                self.parent_window.init_connected_browser()
+                if self.is_reconnect:
+                    self.parent_window.init_reconnected_browser()
+                else:
+                    self.parent_window.init_connected_browser()
             elif message[0]=='8':
                 # handle server error here
                 pass
