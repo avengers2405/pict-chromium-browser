@@ -24,6 +24,7 @@ class WebSocketClient(QObject):
         self.socket.textMessageReceived.connect(self.on_message)
         self.socket.error.connect(self.on_error)
         self.parent_window = parent
+        self.entity_id = None # this will be upgraded to admin id if needed
         self.states = {
             QAbstractSocket.UnconnectedState: "Unconnected",
             QAbstractSocket.HostLookupState: "Looking up host",
@@ -107,6 +108,8 @@ class WebSocketClient(QObject):
                     self.parent_window.init_reconnected_browser()
                 else:
                     self.parent_window.init_connected_browser()
+                ws_data = json.loads(message[1:])
+                self.entity_id = ws_data.get("client_id", None) # we are assuming server will always send client id, so no validation.
             elif message[0]=='8':
                 # handle server error here
                 pass

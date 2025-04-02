@@ -57,11 +57,11 @@ class mainWindow(QMainWindow):
         super(mainWindow, self).__init__(*args, **kwargs)
 
         self.profile = QWebEngineProfile("SecureBrowserProfile")
+        self.websocket_client = views.components.web_socket.WebSocketClient("ws://localhost:3001", self)
         self.interceptor = RequestInterceptor(self)
         self.profile.setUrlRequestInterceptor(self.interceptor)
-        self.scheme_handler = CustomUrlSchemeHandler()
+        self.scheme_handler = CustomUrlSchemeHandler(self)
         self.profile.installUrlSchemeHandler(b'pict', self.scheme_handler)
-        self.websocket_client = views.components.web_socket.WebSocketClient("ws://localhost:3001", self)
         self.managed_tabs = [] # an array to store tab objects + their metadata to specially manage them.
 
     def init_ui(self):

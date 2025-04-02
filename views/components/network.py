@@ -63,8 +63,8 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                     "description": url,
                     "blocked": True,
                 }))
-                dlg = errorMsg("Access Denied: This website is not allowed by administrator")
-                dlg.exec_()
+                # dlg = errorMsg("Access Denied: This website is not allowed by administrator")
+                # dlg.exec_()
                 info.block(True)
                 return
             

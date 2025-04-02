@@ -1,12 +1,17 @@
 import os
 from PyQt5.QtCore import QUrl, QBuffer, QIODevice
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile
-from PyQt5.QtWebEngineCore import QWebEngineUrlRequestJob, QWebEngineUrlScheme, QWebEngineUrlSchemeHandler
+from PyQt5.QtWebEngineCore import QWebEngineUrlRequestJob, QWebEngineUrlSchemeHandler
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from views import main_window
 
 class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
-    def __init__(self, parent = None):
+    def __init__(self, parent:"main_window.mainWindow" = None):
         super().__init__(parent)
         self.base_path = ''
+        self.parent_window = parent
+        self.ws_client = parent.websocket_client
         # print('instantiated this object')
     
     def requestStarted(self, job: QWebEngineUrlRequestJob):
@@ -40,11 +45,16 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
         buffer = QBuffer(self)
         buffer.open(QIODevice.ReadWrite)
         url = url.split("pict://")[1]
+        print('inside get_page function')
 
         if url == 'login':
+            # data needed for login: 
+            # client_id from websocket
             try:
                 html_page = open(os.path.join(os.path.dirname(__file__), '..', '..', 'utils', 'login.html'))
-                buffer.write(html_page.read().encode('utf-8'))
+                buffer.write(html_page.read().replace(r"{{data_placeholder}}", f"const client_id = '{self.ws_client.entity_id}';").encode('utf-8'))
+                html_page.seek(0)
+                print(html_page.read().replace(r"{{data_placeholder}}", f"const client_id = '{self.ws_client.entity_id}';"))
                 buffer.seek(0)
                 return buffer
             except Exception as e:
@@ -85,6 +95,17 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                         """.encode('utf-8'))
                 buffer.seek(0)
                 return buffer
+        elif url == 'admin_login_success':
+            print('admin login successful url hit, now block this further.')
+            # just reply anything as replied html code wont be rendered anywhere anyways.
+            buffer.write("""
+                            random reply. Thank you.
+                        """.encode('utf-8'))
+            buffer.seek(0)
+            return buffer
+        # elif url == 'admin':
+            # data needed for dashboard:
+            # 
         else:
             buffer.write("""
                         <html>
