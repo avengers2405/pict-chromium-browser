@@ -63,6 +63,9 @@ class mainWindow(QMainWindow):
         self.scheme_handler = CustomUrlSchemeHandler(self)
         self.profile.installUrlSchemeHandler(b'pict', self.scheme_handler)
         self.managed_tabs = [] # an array to store tab objects + their metadata to specially manage them.
+        self.secret = None # this will be used for any kind of connection between browser, and html pages.
+        self.__admin_access = False
+        self.__admin_mode = False
 
     def init_ui(self):
         self.tabs = controllers.tabs.Tabs()  # create tabs
@@ -807,3 +810,15 @@ class mainWindow(QMainWindow):
         self.userSettingswindow = views.components.settings.settings.UserSettings()
         self.userSettingswindow.setWindowFlag(Qt.MSWindowsFixedSizeDialogHint)
         self.userSettingswindow.show()
+
+    def get_admin_access(self):
+        return self.__admin_access
+    
+    def set_admin_access(self, val):
+        self.__admin_access = val
+    
+    def get_admin_mode(self):
+        return self.__admin_mode
+    
+    def set_admin_mode(self, val):
+        self.__admin_mode = val

@@ -43,11 +43,14 @@ The way I am planning to connect to server from login page is:
         array from other classes wherever required.
 
 The issue is when the websocket will force the refresh of dashboard, if admin is typing something, ofcourse that will be lost. This is a problem.
-    i.  To solve this, one thing that can be done is to create a seperate editing page which would not refresh automatically. This is whoever cumbersome
+    i.  To solve this, one thing that can be done is to create a seperate editing page which would not refresh automatically. This is however cumbersome
     ii. Another way to solve is to have a sort of edit button which when clicked, sends a request to internal route in browser to indicate that settings 
         are being edited and refresh action should not be performed rn. However this would pose the issue of whether to indicate to admin if settings have
         been changed or changed by someone else or not, if yes, then how will that be achieved? Long polling is one solution.
 
+can add expiry time for secret tokens, if they expire then admin will be told that session expired, reload the page and try again.
+you can also have different secret tokens for different pages. currently, if multiple pages are opened together which need secret token,
+they will overwrite each other producing undesirable result. 
 
 Step 3:
 
