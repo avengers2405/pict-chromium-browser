@@ -541,6 +541,142 @@
     <script>
         // Global variables to store data
         {{data_placeholder}}
+
+        // WebSocket Connection
+        let socket = null;
+        let isConnecting = false;
+        let reconnectInterval = 7000; // Reconnect every 7 seconds
+
+        // WebSocket Management
+        function connectWebSocket() {
+            if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+                console.log('WebSocket already connected or connecting');
+                return;
+            }
+            
+            if (isConnecting) return;
+            isConnecting = true;
+            
+            try {
+                console.log('Connecting to WebSocket server...');
+                socket = new WebSocket('ws://localhost:3002');
+                
+                socket.onopen = () => {
+                    console.log('WebSocket connection established');
+                    isConnecting = false;
+                    sendWebSocketMessage('0'+JSON.stringify({
+                        "secret": secret // will be obtained at runtime
+                    }))
+                    console.log('sent message');
+                };
+                
+                socket.onmessage = (event) => {
+                    handleWebSocketMessage(event.data);
+                };
+                
+                socket.onclose = (event) => {
+                    console.log('WebSocket connection closed', event.code, event.reason);
+                    isConnecting = false;
+                    scheduleReconnect();
+                };
+                
+                socket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    isConnecting = false;
+                    scheduleReconnect();
+                };
+
+                setInterval(() => {
+                    sendWebSocketMessage('2');
+                }, 2000);
+            } catch (error) {
+                console.error('Error creating WebSocket connection:', error);
+                isConnecting = false;
+                scheduleReconnect();
+                sendWebSocketMessage('8'+error);
+            }
+        }
+        
+        function scheduleReconnect() {
+            setTimeout(() => {
+                console.log('Attempting to reconnect WebSocket...');
+                connectWebSocket();
+            }, reconnectInterval);
+        }
+        
+        function sendWebSocketMessage(message) {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                console.log('Cannot send message, WebSocket not connected');
+                return false;
+            }
+            
+            try {
+                console.log('trying to send this: ', message)
+                socket.send(message);
+                console.log('message sent')
+                return true;
+            } catch (error) {
+                console.error('Error sending WebSocket message:', error);
+                sendWebSocketMessage('8'+error);
+                return false;
+            }
+        }
+        
+        function handleWebSocketMessage(data) {
+            try {
+                if (typeof data !== 'string'){
+                    sendWebSocketMessage('8'+(typeof data));
+                    return
+                }
+                if (data.startsWith('2')){
+                    sendWebSocketMessage('3')
+                } else if (data.startsWith('4')){
+                    console.log('recieved data: ', data)
+                    const message = JSON.parse(data.substring(1));
+                    if (message.type=="response"){
+                        if (message.for == 'whitelist'){
+                            whitelistUrls = message.data?.domains | [];
+                            renderWhitelist();
+                        } else if (message.for == 'blacklist'){
+                            blacklistSettings = message.data;
+                            renderBlacklist();
+                        } else if (message.for == 'range_log'){
+                            // handle this at the end
+                            clientData = message.data;
+                            renderAccessTable(clientData); // Initial render uses full data
+                        }
+                    }
+                } else if (data.startsWith('6')){
+                    sendWebSocketMessage('4'+JSON.stringify({
+                        "type": "whitelist",
+                    }))
+                    sendWebSocketMessage('4'+JSON.stringify({
+                        "type": "blacklist",
+                    }))
+                    sendWebSocketMessage('4'+JSON.stringify({
+                        "type": "log",
+                        "offset": 0,
+                        "limit": 25,
+                    }))
+                } else {
+
+                }
+            } catch (error) {
+                // Handle as plain text if not JSON
+                console.log('Received WebSocket text message:', data);
+                sendWebSocketMessage('8'+error);
+            }
+        }
+        
+        function closeWebSocket() {
+            if (socket) {
+            socket.close();
+            socket = null;
+            }
+        }
+
+        connectWebSocket();
+
         let clientData = [];
         let blacklistSettings = null;
         let whitelistUrls = []; // Updated from fetch or add/remove
@@ -1026,7 +1162,7 @@
 
         // --- Initialization ---
         function init() {
-            fetchData(); // Fetch initial data
+            // fetchData(); // Fetch initial data
 
             // Search listener - Reset page to 1 and re-render table
             searchInput.addEventListener('input', () => {
@@ -1035,7 +1171,7 @@
             });
 
             // Refresh button
-            refreshBtn.addEventListener('click', fetchData);
+            // refreshBtn.addEventListener('click', fetchData);
 
             // Pagination listeners
             prevPageBtn.addEventListener('click', prevPage);

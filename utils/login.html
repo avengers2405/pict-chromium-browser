@@ -144,8 +144,7 @@
                     },
                     body: JSON.stringify({ 
                         id: adminId, 
-                        pass: password,
-                        client_id: client_id // Include the client_id from injected data
+                        pass: password
                     })
                 })
                     .then(response => {
@@ -157,14 +156,14 @@
                             // now hit browser with an internal request indicating to it that browser has logged in to admin creds.
                             const xhr = new XMLHttpRequest();
                             try {
-                                xhr.open('GET', 'pict://admin_login_success', true);
+                                xhr.open('GET', `pict://admin_login_success/${secret}`, true);
                                 xhr.send();
                             } catch (e){
                                 console.log('Error in xhr: ', e);
                             }
 
                             // Start countdown timer
-                            let secondsLeft = 10;
+                            let secondsLeft = 5;
                             const countdownInterval = setInterval(() => {
                                 secondsLeft--;
                                 if (secondsLeft > 0) {

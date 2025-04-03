@@ -48,6 +48,29 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             print('blocking: ', url)
             info.block(True)
             return
+        
+        # check whether access for internal link is authorized.
+        if url.startswith("pict://"):
+            resource = url.split("pict://")[1]
+            if not (self.parent_window.get_admin_access() and self.parent_window.get_admin_mode()):
+                if resource == "admin": # append all resources here that non admins should NOT be able to access
+                    if self.parent_window.websocket_client.is_connected():
+                        self.parent_window.websocket_client.send_message(json.dumps({
+                            "action": "log",
+                            "actionType": "LOCAL_ACCESS",
+                            "description": url,
+                            "blocked": True,
+                        }))
+                    info.block(True)
+                    return
+            if self.parent_window.websocket_client.is_connected():
+                self.parent_window.websocket_client.send_message(json.dumps({
+                    "action": "log",
+                    "actionType": "LOCAL_ACCESS",
+                    "description": url,
+                    "blocked": False,
+                }))
+            return
 
         # Determine request type
         resource_type = info.resourceType()
