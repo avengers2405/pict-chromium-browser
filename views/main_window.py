@@ -85,7 +85,12 @@ class mainWindow(QMainWindow):
                 QUrl(models.settings.settings_data["newTabPage"]), label="New tab"
             )
         )
-
+        SwitchToNextTabShortcut = QShortcut("Ctrl+Tab", self)
+        SwitchToNextTabShortcut.activated.connect(lambda: self.switch_to_next_tab())
+        
+        SwitchToPrevTabShortcut = QShortcut("Ctrl+Shift+Tab", self)
+        SwitchToPrevTabShortcut.activated.connect(lambda: self.switch_to_previous_tab())
+        
         # Close current tab on Ctrl+W
         CloseCurrentTabKeyShortcut = QShortcut("Ctrl+W", self)
         # print("Ctrl+W pressed, argument sent: ", lambda: self.close_current_tab(self.tabs.currentIndex()))
@@ -576,10 +581,26 @@ class mainWindow(QMainWindow):
     # to close current tab
     def close_current_tab(self, i):
         if self.tabs.count() < 2:
+            # If it's the last tab, close the entire window
             self.close()
-
-        self.tabs.removeTab(i)
-
+        else:
+            # Otherwise, just remove the tab at the given index 'i'
+            self.tabs.removeTab(i)
+    def switch_to_next_tab(self):
+       # ... implementation from previous steps ...
+       current_index = self.tabs.currentIndex()
+       count = self.tabs.count()
+       if count > 0:
+           next_index = (current_index + 1) % count
+           self.tabs.setCurrentIndex(next_index)
+    def switch_to_previous_tab(self):
+        current_index = self.tabs.currentIndex()
+        count = self.tabs.count()
+        if count > 0: # Only switch if there are tabs
+            # Calculate previous index with wrap-around
+            # (current_index - 1 + count) % count handles the wrap from 0 to count-1
+            previous_index = (current_index - 1 + count) % count
+            self.tabs.setCurrentIndex(previous_index)
     # Update window title
     def update_title(self, views):
         if views != self.tabs.currentWidget():
@@ -588,14 +609,14 @@ class mainWindow(QMainWindow):
         title = self.tabs.currentWidget().page().title()
 
         if 0 > len(title):
-            self.setWindowTitle("{} - MJ23 Browser".format(title))
+            self.setWindowTitle("{} - PICT Browser".format(title))
 
         else:
-            self.setWindowTitle("MJ23 Browser")
+            self.setWindowTitle("PICT Browser")
 
     # function to add new tab
     def add_new_tab(self, qurl=None, label="Blank"):
-        print('Opening new tab finction called')
+        print('Opening new tab function called')
         if qurl is None:
             qurl = QUrl(models.settings.settings_data["newTabPage"])
 
@@ -612,15 +633,21 @@ class mainWindow(QMainWindow):
 
         _browser.loadProgress.connect(self.loadProgressHandler)
 
-        _browser.page().WebAction()
+        # _browser.page().WebAction() # This line seems incomplete or incorrect, commenting out
 
         _browser.settings().setAttribute(QWebEngineSettings.ScreenCaptureEnabled, True)
 
         i = self.tabs.addTab(_browser, label)
         self.tabs.setCurrentIndex(i)
 
+        # <<< --- ADD THIS LINE --- >>>
+        # Explicitly update the URL bar for the new tab immediately after making it current
+        self.update_urlbar(qurl, _browser)
+        # <<< --------------------- >>>
+
+
         _browser.load(qurl)
-        self.url_bar.setFocus()
+        # self.url_bar.setFocus() # Consider moving this after update_urlbar or keeping it here
 
         # update url when it's from the correct tab
         _browser.urlChanged.connect(
@@ -637,6 +664,7 @@ class mainWindow(QMainWindow):
         _browser.page().loadFinished.connect(self.updateHistory)
 
         return _browser
+
 
     def showErrorDlg(self):
         dlg = controllers.errors.errorMsg()

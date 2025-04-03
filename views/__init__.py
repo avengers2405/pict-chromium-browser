@@ -58,7 +58,7 @@ def main():
     QApplication.setApplicationName("Simple Web Browser")
 
     # Set the window icon
-    QApplication.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "logos", "browser.png")))
+    QApplication.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), "..", "utils", "resources", "logos", "pict.jpg")))
 
     # App styles
     if os.path.isfile(os.path.join(os.path.dirname(__file__), "..", "utils", "styles", "styles.css")):
