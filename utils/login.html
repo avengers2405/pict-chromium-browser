@@ -151,7 +151,7 @@
                         console.log('response received: ', response);
                         if (response.ok) {
                             statusDiv.className = 'status success';
-                            statusDiv.textContent = `Success! Logged in with admin credentials. You will automatically be redirected to admin dashboard in 10 seconds.`;
+                            statusDiv.textContent = `Success! Logged in with admin credentials. You will automatically be redirected to admin dashboard in 5 seconds.`;
                             
                             // now hit browser with an internal request indicating to it that browser has logged in to admin creds.
                             const xhr = new XMLHttpRequest();
@@ -163,7 +163,7 @@
                             }
 
                             // Start countdown timer
-                            let secondsLeft = 10;
+                            let secondsLeft = 5;
                             const countdownInterval = setInterval(() => {
                                 secondsLeft--;
                                 if (secondsLeft > 0) {

@@ -38,6 +38,11 @@ import pyperclip as pc
 import datetime
 from dotenv import load_dotenv
 
+from PyQt5.QtNetwork import QAbstractSocket, QHostAddress
+from PyQt5.QtWebSockets import QWebSocket, QWebSocketServer
+from PyQt5.QtCore import QUrl, QObject, pyqtSlot, QTimer
+import json
+
 
 # Regular expressions to match urls
 pattern = re.compile(
@@ -66,6 +71,8 @@ class mainWindow(QMainWindow):
         self.secret = None # this will be used for any kind of connection between browser, and html pages.
         self.__admin_access = False
         self.__admin_mode = False
+        # self.create_ws_server()
+        # self.client={}
 
     def init_ui(self):
         self.tabs = controllers.tabs.Tabs()  # create tabs
@@ -822,3 +829,67 @@ class mainWindow(QMainWindow):
     
     def set_admin_mode(self, val):
         self.__admin_mode = val
+    
+
+    # def create_ws_server(self):
+    #     try:
+    #         self.ws_server = QWebSocketServer("Browser WebSocket Server", QWebSocketServer.NonSecureMode)
+    #         if self.ws_server.listen(QHostAddress.Any, 3002):
+    #             self.ws_server.newConnection.connect(self.server_on_new_connection)
+    #             print('started ws server')
+    #         else:
+    #             print('failed to start ws server')
+    #     except Exception as e:
+    #         print('exception in starting ws server: ', e)
+    
+    # @pyqtSlot()
+    # def server_on_new_connection(self):
+    #     print('new connection to server')
+    #     client = self.ws_server.nextPendingConnection() # this retrieves the next pending connection AS WELL AS accepts it.
+    #     # the client is already accepted at a TCP level when this function is being executed, however to accept it at application level
+    #     # this function needs to be called to extract the client from network queue and accept it. If this function is not called, the
+    #     # connection will eventually timeout and be closed.
+    #     self.server_client = client
+    #     if client is not None:
+    #         client.textMessageReceived.connect(self.server_on_message)
+    #         client.disconnected.connect(self.server_on_disconnect)
+    #         client.error.connect(self.server_on_error)
+
+    # @pyqtSlot(str)
+    # def server_on_message(self, message):
+    #     if message[0]=='0':
+    #         # secret = json.loads(message[1:]).get('secret', None)
+    #         # if secret == self.parent_window.secret:
+    #         # accept auth
+    #         self.client['auth'] = True
+    #         self.server_client.sendTextMessage('6')
+    #         print('client authenticated, saved')
+    #         # else:
+    #         # dont accept, so dont change self.client details to leave it empty / uninitialised.
+    #         # in future, could be due to the fact that secret has expired. then send the appropriate message
+    #         # pass
+    #     else:
+    #         if self.client.get('auth', False):
+    #             self.server_client.sendTextMessage('5')
+    #         else:
+    #             print('recieved message from client: ', message)
+    #             if message[0]=='2':
+    #                 self.server_client.sendTextMessage('3')
+    #             elif message[0]=='4':
+    #                 print('message: ', message[1:])
+    #             elif message[0]=='8':
+    #                 print('recieved erro from client: ', message[1:])
+    #             else:
+    #                 self.server_client.sendTextMessage('8'+json.dumps({
+    #                     "error": "send proper message type",
+    #                 }))
+
+    #     return
+    
+    # @pyqtSlot()
+    # def server_on_disconnect(self):
+    #     return
+    
+    # def server_on_error(self, error):
+    #     print(f"WebSocket ERROR: BLAHBLAH BLAH")
+    #     return

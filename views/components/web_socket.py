@@ -1,10 +1,10 @@
 import json
 import uuid
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot, QTimer
-from PyQt5.QtWebSockets import QWebSocket
+from PyQt5.QtWebSockets import QWebSocket, QWebSocketServer
 import models.settings
 from typing import TYPE_CHECKING
-from PyQt5.QtNetwork import QAbstractSocket
+from PyQt5.QtNetwork import QAbstractSocket, QHostAddress
 
 if TYPE_CHECKING:
     from views import main_window
@@ -15,7 +15,6 @@ class WebSocketClient(QObject):
         self.url = url
         self.reconnect_timer = QTimer(self)
         self.reconnect_timer.timeout.connect(self.reconnect_ws)
-        # self.reconnect_timer.start(7000)
         self.is_reconnect = False
         self.socket = QWebSocket()
         self.socket.open(QUrl(url)) 
@@ -50,6 +49,13 @@ class WebSocketClient(QObject):
         else:
             self.parent_window.toggle_access(False)
             print('parent is: ', parent)
+        
+
+        # now creating a web socket server also here only since that is expected to be small in code and can be more easily integrated
+        # with the the main ws, which is this ws_client class.
+        self.ws_server = None
+        self.client={}
+        self.server_client = None
     
     # '0' is the code to initialise the connection
     # '1' is the code that connection is closed
@@ -58,7 +64,7 @@ class WebSocketClient(QObject):
     # '4' is the code for message
     # '5' send config details first
     # '6' connection done
-    # '7' connecting through admin without login portal
+    # '7' connect through admin without login portal
     # '8' error
     
     @pyqtSlot()
@@ -97,6 +103,10 @@ class WebSocketClient(QObject):
             elif message[0]=='4':
                 # normal message recieved here
                 print('message: ', message[1:])
+                msg = json.loads(message[1:])
+                if msg.get('type') == 'response':
+                    self.server_client.sendTextMessage(message)
+
             elif message[0]=='5':
                 self.socket.sendTextMessage('0'+json.dumps({
                     "mac": ":".join(["{:02x}".format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
@@ -135,3 +145,80 @@ class WebSocketClient(QObject):
             self.socket.open(QUrl("ws://localhost:3001"))
         except Exception as e:
             print('connection to ws failed: ', e)
+    
+    def create_ws_server(self):
+        try:
+            self.ws_server = QWebSocketServer("Browser WebSocket Server", QWebSocketServer.NonSecureMode, self.parent_window)
+            if self.ws_server.listen(QHostAddress.Any, 3002):
+                self.ws_server.newConnection.connect(self.server_on_new_connection)
+                print('started ws server')
+            else:
+                print('failed to start ws server')
+        except Exception as e:
+            print('exception in starting ws server: ', e)
+    
+    @pyqtSlot()
+    def server_on_new_connection(self):
+        print('new connection to server')
+        client = self.ws_server.nextPendingConnection() # this retrieves the next pending connection AS WELL AS accepts it.
+        # the client is already accepted at a TCP level when this function is being executed, however to accept it at application level
+        # this function needs to be called to extract the client from network queue and accept it. If this function is not called, the
+        # connection will eventually timeout and be closed.
+        self.server_client = client
+        if client is not None:
+            client.textMessageReceived.connect(self.server_on_message)
+            client.disconnected.connect(self.server_on_disconnect)
+            client.error.connect(self.server_on_error)
+
+    @pyqtSlot(str)
+    def server_on_message(self, message):
+        print('received message: ', message)
+        if message[0]=='0':
+            secret = json.loads(message[1:]).get('secret', None)
+            if secret == self.parent_window.secret:
+                # accept auth
+                self.client['auth'] = True
+                self.server_client.sendTextMessage('6')
+                print('client authenticated, saved: ', self.client.get('auth', False))
+            else:
+                # dont accept, so dont change self.client details to leave it empty / uninitialised.
+                # in future, could be due to the fact that secret has expired. then send the appropriate message
+                pass
+        else:
+            if not self.client.get('auth', False):
+                print('rejecting message: ', message, '; due to auth failure')
+                self.server_client.sendTextMessage('5')
+            else:
+                print('recieved message from client: ', message)
+                if message[0]=='2':
+                    self.server_client.sendTextMessage('3')
+                elif message[0]=='4':
+                    msg = json.loads(message[1:])
+                    if msg.get('type')=='whitelist':
+                        print('recieved whitelist request.')
+                        self.send_message(message[1:])
+                    elif msg.get('type')=='blacklist':
+                        print('recieved blacklist request.')
+                        self.send_message(message[1:])
+                    elif msg.get('type')=='log':
+                        print('recieved log request.')
+                        self.send_message(message[1:])
+                    else:
+                        print('not handled this yet: ', msg.get('label'))
+                    print('message: ', message[1:])
+                elif message[0]=='8':
+                    print('recieved erro from client: ', message[1:])
+                else:
+                    self.server_client.sendTextMessage('8'+json.dumps({
+                        "error": "send proper message type",
+                    }))
+
+        return
+    
+    @pyqtSlot()
+    def server_on_disconnect(self):
+        return
+    
+    def server_on_error(self, error):
+        print(f"WebSocket ERROR: {self.error_messages.get(error, f'Unknown error: {error}')}")
+        return

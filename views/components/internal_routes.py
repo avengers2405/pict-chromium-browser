@@ -74,6 +74,9 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                         "action": "log",
                         "actionType": "ADMIN_UPGRADE",
                     }))
+                    self.parent_window.websocket_client.send_message(json.dumps({
+                        "action": "admin",
+                    }))
                     self.parent_window.set_admin_access(True) # telling browser that admin access is now alowed.
                     self.parent_window.set_admin_mode(True) # by default browser will go in admin mode after admin login.
                     print('admin login successful url hit.')
@@ -87,6 +90,9 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                 buffer.seek(0)
                 return buffer
             elif url == 'admin':
+                # first start the browser ws server
+                self.parent_window.websocket_client.create_ws_server()
+
                 # data needed for dashboard:
                 # secret
                 self.parent_window.secret = secrets.token_hex(30)
