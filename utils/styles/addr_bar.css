@@ -7,7 +7,7 @@ QLineEdit{
     border-radius:6px;
     font-size:10pt;
     background-color: #ffffff;
-    selection-background-color: #66c2ff;
+    /* selection-background-color: #66c2ff; */
 }
 
 QLineEdit:focus{

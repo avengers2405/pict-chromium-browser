@@ -1,40 +1,46 @@
-QTabBar{
-    background-color:#c5d0f8;
+/* Tab Bar Background */
+QTabBar {
+    background-color: #f2f4f8;
+    padding: 10px;
+    /* border-top-left-radius: 8px;
+    border-top-right-radius: 8px; */
+    border-radius: 50px;
+    margin-bottom: 2px;
 }
 
+/* Default (inactive) tabs */
 QTabBar::tab {
-    background-color: rgb(231, 233, 255);
-    color: black;
-    padding: 5px 0px;
-    padding-left: 4px;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-    padding-right:80px;
-    max-width:80px;
+    background-color: #f2f4f8;
+    color: #333;
+    padding: 8px 16px;
+    margin-right: 3
+    px; 
+    margin-bottom: 4px;
+    margin-left: 1px;
+    width: 120px;
+    /* border-top-left-radius: 8px;
+    border-top-right-radius: 8px; */
+    border-radius: 7%;
     text-align: left;
-    /* text-decoration: black; */
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* QTabBar::close-button {                         /* style the tab close button*/
-    /* image: url(../resources/icons/closetabbutton.png); */
-    /* subcontrol-position: right; */
-    /* border: 1px solid red;
-    border-radius:3px;
-} */
-
-/*QTabBar::close-button:hover{                     /* close button hover */
-    /* background-color: #823aff; */
-/* } */
-
-/*QTabBar::close-button:selected{                    /* close button hover */
-    /* background-color: #3B2E53; */
-/* } */
-
-QTabBar::tab:hover{
-    background-color:#ba92ff;
+/* Hover effect */
+QTabBar::tab:hover {
+    background-color: #f1f3f4;
 }
 
-QTabBar::tab:selected{                          /* selected tabs */
-    background-color: #823aff;
-    color: white
+/* Selected (active) tab */
+QTabBar::tab:selected {
+    background-color: #d7e1f6;
+    color: rgb(0, 75, 115);
+    font-weight: bold;
+    border: 1px solid #b2c7f5;
+    box-shadow: 10px 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+

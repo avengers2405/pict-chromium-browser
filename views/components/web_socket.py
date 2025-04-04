@@ -142,7 +142,7 @@ class WebSocketClient(QObject):
     
     def reconnect_ws(self):
         try:
-            self.socket.open(QUrl("ws://localhost:3001"))
+            self.socket.open(QUrl("ws://192.168.173.78:3001"))
         except Exception as e:
             print('connection to ws failed: ', e)
     

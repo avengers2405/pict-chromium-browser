@@ -76,27 +76,29 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         resource_type = info.resourceType()
         
         # Main frame navigations (user explicitly navigating to a page)
+        
         if resource_type == QWebEngineUrlRequestInfo.ResourceTypeMainFrame or info.navigationType() == QWebEngineUrlRequestInfo.NavigationTypeLink or info.navigationType() == QWebEngineUrlRequestInfo.NavigationTypeRedirect or info.navigationType() == QWebEngineUrlRequestInfo.NavigationTypeTyped or info.navigationType() == QWebEngineUrlRequestInfo.NavigationTypeFormSubmitted:
             print('called by mainfraim')
             # Apply strict whitelist/blacklist rules
             if not self.is_url_allowed(domain):
+                if resource_type == QWebEngineUrlRequestInfo.ResourceTypeMainFrame :
+                    self.parent_window.websocket_client.send_message(json.dumps({
+                        "action": "log",
+                        "actionType": "INTERNET_ACCESS",
+                        "description": url,
+                        "blocked": True,
+                    }))
+                # dlg = errorMsg("Access Denied: This website is not allowed by administrator")
+                # dlg.exec_()
+                    info.block(True)
+                    return
+            if resource_type == QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
                 self.parent_window.websocket_client.send_message(json.dumps({
                     "action": "log",
                     "actionType": "INTERNET_ACCESS",
                     "description": url,
-                    "blocked": True,
+                    "blocked": False,
                 }))
-                # dlg = errorMsg("Access Denied: This website is not allowed by administrator")
-                # dlg.exec_()
-                info.block(True)
-                return
-            
-            self.parent_window.websocket_client.send_message(json.dumps({
-                "action": "log",
-                "actionType": "INTERNET_ACCESS",
-                "description": url,
-                "blocked": False,
-            }))
         # else allow everything not initiated explictly
     
     def is_url_allowed(self, domain):

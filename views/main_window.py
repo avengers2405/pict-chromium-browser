@@ -62,7 +62,7 @@ class mainWindow(QMainWindow):
         super(mainWindow, self).__init__(*args, **kwargs)
 
         self.profile = QWebEngineProfile("SecureBrowserProfile")
-        self.websocket_client = views.components.web_socket.WebSocketClient("ws://localhost:3001", self)
+        self.websocket_client = views.components.web_socket.WebSocketClient("ws://192.168.173.78:3001", self)
         self.interceptor = RequestInterceptor(self)
         self.profile.setUrlRequestInterceptor(self.interceptor)
         self.scheme_handler = CustomUrlSchemeHandler(self)
@@ -95,7 +95,11 @@ class mainWindow(QMainWindow):
                 QUrl(models.settings.settings_data["newTabPage"]), label="New tab"
             )
         )
-
+        SwitchToNextTabShortcut = QShortcut("Ctrl+Tab", self)
+        SwitchToNextTabShortcut.activated.connect(lambda: self.switch_to_next_tab())
+        
+        SwitchToPrevTabShortcut = QShortcut("Ctrl+Shift+Tab", self)
+        SwitchToPrevTabShortcut.activated.connect(lambda: self.switch_to_previous_tab())
         # Close current tab on Ctrl+W
         CloseCurrentTabKeyShortcut = QShortcut("Ctrl+W", self)
         # print("Ctrl+W pressed, argument sent: ", lambda: self.close_current_tab(self.tabs.currentIndex()))
@@ -589,6 +593,21 @@ class mainWindow(QMainWindow):
             self.close()
 
         self.tabs.removeTab(i)
+    def switch_to_next_tab(self):
+       # ... implementation from previous steps ...
+       current_index = self.tabs.currentIndex()
+       count = self.tabs.count()
+       if count > 0:
+           next_index = (current_index + 1) % count
+           self.tabs.setCurrentIndex(next_index)
+    def switch_to_previous_tab(self):
+        current_index = self.tabs.currentIndex()
+        count = self.tabs.count()
+        if count > 0: # Only switch if there are tabs
+            # Calculate previous index with wrap-around
+            # (current_index - 1 + count) % count handles the wrap from 0 to count-1
+            previous_index = (current_index - 1 + count) % count
+            self.tabs.setCurrentIndex(previous_index)
 
     # Update window title
     def update_title(self, views):
