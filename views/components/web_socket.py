@@ -104,7 +104,10 @@ class WebSocketClient(QObject):
                 # normal message recieved here
                 msg = json.loads(message[1:])
                 if msg.get('type') == 'response':
-                    self.server_client.sendTextMessage(message)
+                    if msg.get('for') == 'update_settings':
+                        self.parent_window.interceptor.update_lists()
+                    else:
+                        self.server_client.sendTextMessage(message)
                 elif msg.get('type') == 'update':
                     print('SENDING UPDATE TO HTML PAGE: ', message)
                     self.server_client.sendTextMessage(message)
