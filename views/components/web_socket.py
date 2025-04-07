@@ -194,6 +194,21 @@ class WebSocketClient(QObject):
                 if message[0]=='2':
                     self.server_client.sendTextMessage('3')
                 elif message[0]=='4':
+                    msg = json.loads(message[1:])
+                    if msg.get('type')=='whitelist':
+                        print('recieved whitelist request.')
+                        self.send_message(message[1:])
+                    elif msg.get('type')=='blacklist':
+                        print('recieved blacklist request.')
+                        self.send_message(message[1:])
+                    elif msg.get('type')=='log':
+                        print('recieved log request.')
+                        self.send_message(message[1:])
+                    elif msg.get('type')=='update_settings':
+                        print("-----")
+                        self.send_message(message[1:])
+                    else:
+                        print('not handled this yet: ', msg.get('label'))
                     try:
                         msg = json.loads(message[1:])
                         if msg.get('type')=='whitelist':

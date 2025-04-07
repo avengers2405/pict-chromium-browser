@@ -1133,6 +1133,7 @@
                 blacklistSettings.data.lastUpdated = new Date().toISOString();
                 const updated = await updateSettings(blacklistSettings);
                 blacklistSettings = updated; // Use response from server
+                
                 renderBlacklist();
             } catch (error) {
                 blacklistSettings.data.domains = originalDomains; renderBlacklist(); // Rollback
@@ -1198,7 +1199,8 @@
         async function handleRemoveFromBlacklist(event, skipConfirm = false) {
             const value = event.target.dataset.value; const type = event.target.dataset.type;
             if (!value || !type || !blacklistSettings?.data) return;
-            if (!skipConfirm && !confirm(`Remove "${value}" (${type}) from blacklist?`)) return;
+            // if (!skipConfirm && !confirm(`Remove "${value}" (${type}) from blacklist?`)) return;
+            if (!skipConfirm && !confirm(`Remove from blacklist?`)) return;
 
             let originalItems, targetContainer;
             if (type === 'domain') { originalItems = [...blacklistSettings.data.domains]; blacklistSettings.data.domains = blacklistSettings.data.domains.filter(d => d !== value); targetContainer = domainsContainer; }
