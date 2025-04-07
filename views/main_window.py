@@ -100,7 +100,6 @@ class mainWindow(QMainWindow):
         
         SwitchToPrevTabShortcut = QShortcut("Ctrl+Shift+Tab", self)
         SwitchToPrevTabShortcut.activated.connect(lambda: self.switch_to_previous_tab())
-        
         # Close current tab on Ctrl+W
         CloseCurrentTabKeyShortcut = QShortcut("Ctrl+W", self)
         # print("Ctrl+W pressed, argument sent: ", lambda: self.close_current_tab(self.tabs.currentIndex()))
@@ -593,9 +592,8 @@ class mainWindow(QMainWindow):
         if self.tabs.count() < 2:
             # If it's the last tab, close the entire window
             self.close()
-        else:
-            # Otherwise, just remove the tab at the given index 'i'
-            self.tabs.removeTab(i)
+
+        self.tabs.removeTab(i)
     def switch_to_next_tab(self):
        # ... implementation from previous steps ...
        current_index = self.tabs.currentIndex()
@@ -611,6 +609,7 @@ class mainWindow(QMainWindow):
             # (current_index - 1 + count) % count handles the wrap from 0 to count-1
             previous_index = (current_index - 1 + count) % count
             self.tabs.setCurrentIndex(previous_index)
+
     # Update window title
     def update_title(self, views):
         if views != self.tabs.currentWidget():
