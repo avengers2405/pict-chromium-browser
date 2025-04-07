@@ -689,6 +689,7 @@
                 } else if (data.startsWith('4')){
                     console.log('received data: ', data)
                     const message = JSON.parse(data.substring(1));
+                    sendWebSocketMessage(`4 HI received message: ${JSON.stringify(JSON.parse(message.data).res)}`)
                     if (message.type=="response"){
                         if (message.for == 'whitelist'){
                             whitelistUrls = message.data?.domains || [];
@@ -728,7 +729,9 @@
                         }
                     } else if (message.type === "update" && message.for === "log") {
                         // Handle real-time log updates
-                        handleLiveLogUpdates(message.data || []);
+                        liveUpdated+=1;
+                        sendWebSocketMessage('4got update: '+JSON.parse(message.data).res)
+                        handleLiveLogUpdates(JSON.parse(message.data).res || []);
                     }
                 } else if (data.startsWith('6')){
                     sendWebSocketMessage('4'+JSON.stringify({
@@ -767,6 +770,7 @@
         let isAtBottom = true; // Track if user is at the bottom of the log
         let hasNewLogs = false; // Track if new logs are available while user is scrolled away
         let userScrolled = false; // Track if user has manually scrolled
+        let liveUpdated = 0;
 
         // --- DOM elements ---
         const accessTableBody = document.getElementById('accessTableBody');
@@ -986,19 +990,23 @@
 
         // Handle live log updates from WebSocket
         function handleLiveLogUpdates(newLogs) {
-            if (!newLogs || !Array.isArray(newLogs) || newLogs.length === 0) return;
+            sendWebSocketMessage(`4 begin func: ${newLogs}`)
+            if (!newLogs) return;
             
+            sendWebSocketMessage('4 appending to arr')
             // Add new logs to the beginning of the array
-            logData = [...newLogs, ...logData];
+            logData = [newLogs, ...logData];
             
+            sendWebSocketMessage('4 checking and rendering')
             // If user is at the bottom or hasn't scrolled, update the view
-            if (isAtBottom && !userScrolled) {
-                renderAccessTable();
-            } else {
-                // Show notification that new logs are available
-                hasNewLogs = true;
-                newLogsIndicator.style.display = 'block';
-            }
+            // if (isAtBottom && !userScrolled) {
+            renderAccessTable();
+            sendWebSocketMessage('4 done rendering')
+            // } else {
+            //     // Show notification that new logs are available
+            //     hasNewLogs = true;
+            //     newLogsIndicator.style.display = 'block';
+            // }
         }
 
         // Scroll to top to see new logs
@@ -1018,7 +1026,8 @@
             
             // If user scrolled to bottom and we have more logs to load
             if (isAtBottom && !isLoadingMore && !allLogsLoaded) {
-                requestLogs(logOffset, logBatchSize);
+                requestLogs(logOffset+liveUpdated, logBatchSize);
+                liveUpdated=0;
             }
             
             // If user scrolled back to top, hide new logs indicator

@@ -102,9 +102,11 @@ class WebSocketClient(QObject):
                 print('3')
             elif message[0]=='4':
                 # normal message recieved here
-                print('message: ', message[1:])
                 msg = json.loads(message[1:])
                 if msg.get('type') == 'response':
+                    self.server_client.sendTextMessage(message)
+                elif msg.get('type') == 'update':
+                    print('SENDING UPDATE TO HTML PAGE: ', message)
                     self.server_client.sendTextMessage(message)
 
             elif message[0]=='5':
@@ -172,7 +174,7 @@ class WebSocketClient(QObject):
 
     @pyqtSlot(str)
     def server_on_message(self, message):
-        print('received message: ', message)
+        print('recieved message to browser server from client: ', message)
         if message[0]=='0':
             secret = json.loads(message[1:]).get('secret', None)
             if secret == self.parent_window.secret:
@@ -189,22 +191,25 @@ class WebSocketClient(QObject):
                 print('rejecting message: ', message, '; due to auth failure')
                 self.server_client.sendTextMessage('5')
             else:
-                print('recieved message from client: ', message)
                 if message[0]=='2':
                     self.server_client.sendTextMessage('3')
                 elif message[0]=='4':
-                    msg = json.loads(message[1:])
-                    if msg.get('type')=='whitelist':
-                        print('recieved whitelist request.')
-                        self.send_message(message[1:])
-                    elif msg.get('type')=='blacklist':
-                        print('recieved blacklist request.')
-                        self.send_message(message[1:])
-                    elif msg.get('type')=='log':
-                        print('recieved log request.')
-                        self.send_message(message[1:])
-                    else:
-                        print('not handled this yet: ', msg.get('label'))
+                    try:
+                        msg = json.loads(message[1:])
+                        if msg.get('type')=='whitelist':
+                            print('recieved whitelist request.')
+                            self.send_message(message[1:])
+                        elif msg.get('type')=='blacklist':
+                            print('recieved blacklist request.')
+                            self.send_message(message[1:])
+                        elif msg.get('type')=='log':
+                            print('recieved log request.')
+                            self.send_message(message[1:])
+                        else:
+                            print('not handled this yet: ', msg.get('label'))
+                    except Exception as e:
+                        # received as plain text
+                        print('message as plain text: ', message[1:], e)
                     print('message: ', message[1:])
                 elif message[0]=='8':
                     print('recieved erro from client: ', message[1:])
