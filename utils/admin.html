@@ -603,7 +603,7 @@
 
         // WebSocket Connection
         let socket = null;
-        let isConnecting = false;
+        // let isConnecting = false;
         let reconnectInterval = 7000; // Reconnect every 7 seconds
 
         // WebSocket Management
@@ -613,16 +613,16 @@
                 return;
             }
             
-            if (isConnecting) return;
-            isConnecting = true;
+            // if (isConnecting) return;
+            // isConnecting = true;
             
             try {
                 console.log('Connecting to WebSocket server...');
                 socket = new WebSocket('ws://localhost:3002');
                 
                 socket.onopen = () => {
-                    console.log('WebSocket connection established');
-                    isConnecting = false;
+                    sendWebSocketMessage('WebSocket connection established, sending auth');
+                    // isConnecting = false;
                     sendWebSocketMessage('0'+JSON.stringify({
                         "secret": secret // will be obtained at runtime
                     }))
@@ -635,19 +635,19 @@
                 
                 socket.onclose = (event) => {
                     console.log('WebSocket connection closed', event.code, event.reason);
-                    isConnecting = false;
+                    // isConnecting = false;
                     scheduleReconnect();
                 };
                 
                 socket.onerror = (error) => {
                     console.error('WebSocket error:', error);
-                    isConnecting = false;
+                    // isConnecting = false;
                     scheduleReconnect();
                 };
 
             } catch (error) {
                 console.error('Error creating WebSocket connection:', error);
-                isConnecting = false;
+                // isConnecting = false;
                 scheduleReconnect();
                 sendWebSocketMessage('8'+error);
             }
@@ -673,24 +673,27 @@
                 return true;
             } catch (error) {
                 console.error('Error sending WebSocket message:', error);
-                sendWebSocketMessage('8'+error);
+                // sendWebSocketMessage('8'+error);
                 return false;
             }
         }
         
         function handleWebSocketMessage(data) {
+            sendWebSocketMessage("4------ recieved message: "+data);
             try {
                 if (typeof data !== 'string'){
                     sendWebSocketMessage('8'+(typeof data));
                     return
                 }
+
                 if (data.startsWith('2')){
                     sendWebSocketMessage('3')
                 } else if (data.startsWith('4')){
                     console.log('received data: ', data)
                     const message = JSON.parse(data.substring(1));
-                    sendWebSocketMessage(`4 HI received message: ${JSON.stringify(JSON.parse(message.data).res)}`)
-                    if (message.type=="response"){
+                    // sendWebSocketMessage(`4 HI received message: ${JSON.stringify(JSON.parse(message.data).res)}`)
+
+                    if (message.type=="all_data"){
                         if (message.for == 'whitelist'){
                             whitelistUrls = message.data?.domains || [];
                             renderWhitelist();
@@ -698,40 +701,33 @@
                             blacklistSettings = message.data;
                             renderBlacklist();
                         } else if (message.for == 'range_log'){
-                            // Handle paginated log data
+                            sendWebSocketMessage('4 GOT RANGE LOG');
                             const newLogs = message.data || [];
-                            
-                            // If this is the initial load or a refresh
-                            if (logOffset === 0) {
-                                logData = newLogs;
+                            logData = [...logData, ...newLogs];
+                            if (logOffset===0){
                                 renderAccessTable(true);
                             } else {
-                                // Append older logs to the bottom
-                                if (newLogs.length > 0) {
-                                    logData = [...logData, ...newLogs];
-                                    appendOlderLogs(newLogs);
-                                } else {
-                                    // No more logs to fetch
-                                    allLogsLoaded = true;
-                                }
+                                appendOlderLogs(newLogs);
                             }
                             
                             // Hide loading spinner
                             document.getElementById('loadMoreSpinner').style.display = 'none';
                             
                             // Show end of logs message if no more logs
-                            if (newLogs.length === 0 || newLogs.length < logBatchSize) {
+                            if (newLogs.length < logBatchSize) {
                                 allLogsLoaded = true;
                                 document.getElementById('endOfLogs').style.display = 'block';
                             }
-                            
                             isLoadingMore = false;
                         }
-                    } else if (message.type === "update" && message.for === "log") {
-                        // Handle real-time log updates
-                        liveUpdated+=1;
-                        sendWebSocketMessage('4got update: '+JSON.parse(message.data).res)
-                        handleLiveLogUpdates(JSON.parse(message.data).res || []);
+
+                    } else if (message.type === "update") {
+                        if (message.for === "log") {
+                            // Handle real-time log updates
+                            liveUpdated+=1;
+                            // sendWebSocketMessage('4got update: '+JSON.parse(message.data).res)
+                            handleLiveLogUpdates(JSON.parse(message.data).res || []);
+                        }
                     }
                 } else if (data.startsWith('6')){
                     sendWebSocketMessage('4'+JSON.stringify({
@@ -990,18 +986,18 @@
 
         // Handle live log updates from WebSocket
         function handleLiveLogUpdates(newLogs) {
-            sendWebSocketMessage(`4 begin func: ${newLogs}`)
+            // sendWebSocketMessage(`4 begin func: ${newLogs}`)
             if (!newLogs) return;
             
-            sendWebSocketMessage('4 appending to arr')
+            // sendWebSocketMessage('4 appending to arr')
             // Add new logs to the beginning of the array
             logData = [newLogs, ...logData];
             
-            sendWebSocketMessage('4 checking and rendering')
+            // sendWebSocketMessage('4 checking and rendering')
             // If user is at the bottom or hasn't scrolled, update the view
             // if (isAtBottom && !userScrolled) {
             renderAccessTable();
-            sendWebSocketMessage('4 done rendering')
+            // sendWebSocketMessage('4 done rendering')
             // } else {
             //     // Show notification that new logs are available
             //     hasNewLogs = true;

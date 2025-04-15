@@ -103,7 +103,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     
     def is_url_allowed(self, domain):
         # Extract the domain
-        print('checking if allowed: ', domain)
+        # print('checking if allowed: ', domain)
         
         # Check blacklist first (explicit deny has priority)
         for pattern in self.blacklist:
@@ -124,13 +124,13 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     def match_pattern(self, pattern, domain):
         # Support regex patterns or basic wildcard matching
         if pattern.startswith("regex:"):
-            print('matching regex patter')
+            # print('matching regex patter')
             regex = pattern[6:]
             return re.search(regex, domain) is not None
         else:
             # Convert glob pattern to regex
             # pattern = pattern.replace(".", "\\.").replace("*", ".*")
-            print('checking using sth else: ', pattern, domain, domain==pattern)
+            # print('checking using sth else: ', pattern, domain, domain==pattern)
             return domain==pattern
             # return re.match(f"^{pattern}$", domain) is not None
     
@@ -140,7 +140,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         return url_obj.host()
     
     def update_lists(self):
-        response = requests.get(f"{os.getenv('SERVER_URL')}/settings/bw_filter", timeout=5)
+        response = requests.get(f"{os.getenv('SERVER_URL')}/settings/bw_filter", timeout=15)
         if response.status_code==200:
             data = response.json()
             self.whitelist = data.get('whitelist', {"domains": []})["domains"]
