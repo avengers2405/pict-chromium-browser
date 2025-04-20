@@ -99,8 +99,10 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                 self.parent_window.secret = secrets.token_hex(30)
                 html_page = open(os.path.join(os.path.dirname(__file__), '..', '..', 'utils', 'admin.html'))
                 buffer.write(html_page.read().replace(r"{{data_placeholder}}", f"""
-                                                        if (typeof secret === undefined) const secret = '{self.parent_window.secret}';
+                                                        if (typeof secret === undefined) var secret = '{self.parent_window.secret}';
                                                         else secret = '{self.parent_window.secret}';
+                                                        if (typeof socketUrl === undefined) var socketUrl = 'ws://localhost:3002';
+                                                        else socketUrl = 'ws://localhost:3002';
                                                     """).encode('utf-8'))
                 # buffer.write(html_page.read().encode('utf-8'))
                 buffer.seek(0)

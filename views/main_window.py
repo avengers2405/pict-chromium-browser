@@ -87,9 +87,6 @@ class mainWindow(QMainWindow):
         InspectShortcut = QShortcut("Ctrl+Shift+I", self)
         InspectShortcut.activated.connect(self.open_dev_tools)
 
-        InspectShortcut2 = QShortcut("Ctrl+A", self)
-        InspectShortcut2.activated.connect(self.open_dev_tools)
-
         # open new tab when 
         AddNewTabKeyShortcut = QShortcut("Ctrl+T", self)
         AddNewTabKeyShortcut.activated.connect(
@@ -408,7 +405,6 @@ class mainWindow(QMainWindow):
         #     "browser": _browser,
         #     "label": "connecting_page"
         # })
-        self.open_dev_tools()
 
     """
     Instead of managing 2 slots associated with the progress and completion of loading,

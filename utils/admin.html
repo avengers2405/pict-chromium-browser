@@ -615,7 +615,11 @@
         // WebSocket Management
         function connectWebSocket() {
             if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-                console.log('WebSocket already connected or connecting');
+                console.log('WebSocket already connected or connecting: ', socket.readyState === WebSocket.OPEN, socket.readyState === WebSocket.CONNECTING);
+                if (socket.readyState === WebSocket.OPEN){
+                    console.log('sending message bcz shows open.');
+                    sendWebSocketMessage('4hey is connction really done???????');
+                }
                 return;
             }
             
@@ -624,7 +628,7 @@
             
             try {
                 console.log('Connecting to WebSocket server...');
-                socket = new WebSocket('ws://localhost:3002');
+                socket = new WebSocket(socketUrl);
                 
                 socket.onopen = () => {
                     sendWebSocketMessage('WebSocket connection established, sending auth');
