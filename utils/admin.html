@@ -598,8 +598,14 @@
     </div>
 
     <script>
-        // Global variables to store data
-        {{data_placeholder}}
+        var secret='';
+        var socketUrl='ws://localhost:3002';
+        try{
+            // Global variables to store data
+            {{data_placeholder}}
+        } catch (e) {
+            console.log('variables not recieved');
+        }
 
         // WebSocket Connection
         let socket = null;
@@ -754,6 +760,7 @@
         }
 
         connectWebSocket();
+        scheduleReconnect();
 
         // --- Log Management Variables ---
         let logData = [];

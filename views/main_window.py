@@ -38,11 +38,6 @@ import pyperclip as pc
 import datetime
 from dotenv import load_dotenv
 
-from PyQt5.QtNetwork import QAbstractSocket, QHostAddress
-from PyQt5.QtWebSockets import QWebSocket, QWebSocketServer
-from PyQt5.QtCore import QUrl, QObject, pyqtSlot, QTimer
-import json
-
 
 # Regular expressions to match urls
 pattern = re.compile(
@@ -61,6 +56,7 @@ class mainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(mainWindow, self).__init__(*args, **kwargs)
 
+        self.webview = QWebEngineView(self)
         self.profile = QWebEngineProfile("SecureBrowserProfile")
         self.websocket_client = views.components.web_socket.WebSocketClient("ws://localhost:3001", self)
         self.interceptor = RequestInterceptor(self)
@@ -87,6 +83,12 @@ class mainWindow(QMainWindow):
                 PRIMARY KEY("id")
             )"""
         )
+
+        InspectShortcut = QShortcut("Ctrl+Shift+I", self)
+        InspectShortcut.activated.connect(self.open_dev_tools)
+
+        InspectShortcut2 = QShortcut("Ctrl+A", self)
+        InspectShortcut2.activated.connect(self.open_dev_tools)
 
         # open new tab when 
         AddNewTabKeyShortcut = QShortcut("Ctrl+T", self)
@@ -406,12 +408,22 @@ class mainWindow(QMainWindow):
         #     "browser": _browser,
         #     "label": "connecting_page"
         # })
+        self.open_dev_tools()
 
     """
     Instead of managing 2 slots associated with the progress and completion of loading,
     only one of them should be used since, for example, the associated slot is also called when
     it is loaded at 100% so it could be hidden since it can be invoked together with finished.
     """
+
+    def open_dev_tools(self):
+        dev_tools = QWebEngineView()
+        self.tabs.currentWidget().page().setDevToolsPage(dev_tools.page())
+        dev_tools.show()
+        dev_tools.showMaximized()
+        dev_tools.adjustSize()
+        print('opened dev tools: ', dev_tools.isFullScreen())
+        self.dev_tools = dev_tools
 
     def toggle_access(self, val):
         RequestInterceptor.set_login(val)
@@ -595,12 +607,12 @@ class mainWindow(QMainWindow):
 
         self.tabs.removeTab(i)
     def switch_to_next_tab(self):
-       # ... implementation from previous steps ...
-       current_index = self.tabs.currentIndex()
-       count = self.tabs.count()
-       if count > 0:
-           next_index = (current_index + 1) % count
-           self.tabs.setCurrentIndex(next_index)
+        # ... implementation from previous steps ...
+        current_index = self.tabs.currentIndex()
+        count = self.tabs.count()
+        if count > 0:
+            next_index = (current_index + 1) % count
+            self.tabs.setCurrentIndex(next_index)
     def switch_to_previous_tab(self):
         current_index = self.tabs.currentIndex()
         count = self.tabs.count()
@@ -649,14 +661,11 @@ class mainWindow(QMainWindow):
         i = self.tabs.addTab(_browser, label)
         self.tabs.setCurrentIndex(i)
 
-        # <<< --- ADD THIS LINE --- >>>
         # Explicitly update the URL bar for the new tab immediately after making it current
         self.update_urlbar(qurl, _browser)
-        # <<< --------------------- >>>
-
 
         _browser.load(qurl)
-        # self.url_bar.setFocus() # Consider moving this after update_urlbar or keeping it here
+        self.url_bar.setFocus() # Consider moving this after update_urlbar or keeping it here
 
         # update url when it's from the correct tab
         _browser.urlChanged.connect(

@@ -91,13 +91,18 @@ class CustomUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                 return buffer
             elif url == 'admin':
                 # first start the browser ws server
-                self.parent_window.websocket_client.create_ws_server()
+                if not self.parent_window.websocket_client.server_is_on():
+                    self.parent_window.websocket_client.create_ws_server()
 
                 # data needed for dashboard:
                 # secret
                 self.parent_window.secret = secrets.token_hex(30)
                 html_page = open(os.path.join(os.path.dirname(__file__), '..', '..', 'utils', 'admin.html'))
-                buffer.write(html_page.read().replace(r"{{data_placeholder}}", f"const secret = '{self.parent_window.secret}';").encode('utf-8'))
+                buffer.write(html_page.read().replace(r"{{data_placeholder}}", f"""
+                                                        if (typeof secret === undefined) const secret = '{self.parent_window.secret}';
+                                                        else secret = '{self.parent_window.secret}';
+                                                    """).encode('utf-8'))
+                # buffer.write(html_page.read().encode('utf-8'))
                 buffer.seek(0)
                 return buffer
 

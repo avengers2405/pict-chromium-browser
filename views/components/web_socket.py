@@ -161,13 +161,16 @@ class WebSocketClient(QObject):
     
     @pyqtSlot()
     def server_on_new_connection(self):
-        print('new connection to server')
+        print('server CONN CALLED - 1.')
         client = self.ws_server.nextPendingConnection() # this retrieves the next pending connection AS WELL AS accepts it.
         # the client is already accepted at a TCP level when this function is being executed, however to accept it at application level
         # this function needs to be called to extract the client from network queue and accept it. If this function is not called, the
         # connection will eventually timeout and be closed.
+        print("client RECIEVED: ", client, 2)
         self.server_client = client
+        print('client ASSIGNED')
         if client is not None:
+            print('new connection to server')
             client.textMessageReceived.connect(self.server_on_message)
             client.disconnected.connect(self.server_on_disconnect)
             client.error.connect(self.server_on_error)
@@ -176,16 +179,20 @@ class WebSocketClient(QObject):
     def server_on_message(self, message):
         print('recieved message to browser server from client: ', message)
         if message[0]=='0':
-            secret = json.loads(message[1:]).get('secret', None)
-            if secret == self.parent_window.secret:
-                # accept auth
-                self.client['auth'] = True
-                self.server_client.sendTextMessage('6')
-                print('client authenticated, saved: ', self.client.get('auth', False))
-            else:
-                # dont accept, so dont change self.client details to leave it empty / uninitialised.
-                # in future, could be due to the fact that secret has expired. then send the appropriate message
-                pass
+            # accept all for now dev
+            self.client['auth'] = True
+            self.server_client.sendTextMessage('6')
+            print('client authenticated, saved: ', self.client.get('auth', False))
+            # secret = json.loads(message[1:]).get('secret', None)
+            # if secret == self.parent_window.secret:
+            #     # accept auth
+            #     self.client['auth'] = True
+            #     self.server_client.sendTextMessage('6')
+            #     print('client authenticated, saved: ', self.client.get('auth', False))
+            # else:
+            #     # dont accept, so dont change self.client details to leave it empty / uninitialised.
+            #     # in future, could be due to the fact that secret has expired. then send the appropriate message
+            #     pass
         else:
             if not self.client.get('auth', False):
                 print('rejecting message: ', message, '; due to auth failure')
@@ -222,8 +229,19 @@ class WebSocketClient(QObject):
     
     @pyqtSlot()
     def server_on_disconnect(self):
+        print('some client disconnected')
         return
     
     def server_on_error(self, error):
         print(f"WebSocket ERROR: {self.error_messages.get(error, f'Unknown error: {error}')}")
         return
+    
+    def server_is_on(self):
+        try:
+            if self.ws_server.isListening():
+                return True
+        except Exception as e:
+            return False
+        finally:
+            return False
+        
