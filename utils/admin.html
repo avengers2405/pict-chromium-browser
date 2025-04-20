@@ -737,6 +737,17 @@
                             liveUpdated+=1;
                             // sendWebSocketMessage('4got update: '+JSON.parse(message.data).res)
                             handleLiveLogUpdates(JSON.parse(message.data).res || []);
+                        } else if (message.for === "settings") {
+                            const updatedSettings = JSON.parse(message.data || "{}");
+                            if (updatedSettings.type === "blacklist") {
+                                blacklistSettings = updatedSettings.data;
+                                blacklistLastUpdatedElement.textContent = `Last updated: ${formatTimestamp(blacklistSettings.data.lastUpdated)};`;
+                                renderBlacklist();
+                            } else if (updatedSettings.type === "whitelist") {
+                                whitelistUrls = updatedSettings.data.domains || [];
+                                whitelistLastUpdatedElement.textContent = `Last updated: ${formatTimestamp(updatedSettings.settings.data.lastUpdated)};`;
+                                renderWhitelist();
+                            }
                         }
                     }
                 } else if (data.startsWith('6')){

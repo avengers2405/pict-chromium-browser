@@ -107,6 +107,7 @@ class WebSocketClient(QObject):
                     self.server_client.sendTextMessage(message)
                 elif msg.get('type') == 'update':
                     print('SENDING UPDATE TO HTML PAGE: ', message)
+                    self.parent_window.interceptor.update_lists()
                     self.server_client.sendTextMessage(message)
 
             elif message[0]=='5':
@@ -212,8 +213,11 @@ class WebSocketClient(QObject):
                         elif msg.get('type')=='log':
                             print('recieved log request.')
                             self.send_message(message[1:])
+                        elif msg.get('type')=='update_settings':
+                            print('recieved req to update settings.')
+                            self.send_message(message[1:])
                         else:
-                            print('not handled this yet: ', msg.get('label'))
+                            print('not handled this yet: ', msg.get('type'))
                     except Exception as e:
                         # received as plain text
                         print('message as plain text: ', message[1:], e)
